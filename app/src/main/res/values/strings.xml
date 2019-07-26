@@ -1,0 +1,13 @@
+<resources>
+    <string name="app_name">MoonShot</string>
+
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="meal_ticket">Meal Ticket</string>
+
+    <string name="tap_back_to_exit">Tap back again to exit</string>
+    <string name="moonshot_logo">Moonshot Logo</string>
+    <string name="action_disconnect">Disconnect</string>
+    <string name="enroll">enroll</string>
+
+</resources>

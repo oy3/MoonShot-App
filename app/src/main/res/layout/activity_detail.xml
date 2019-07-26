@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.constraint.ConstraintLayout
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:app="http://schemas.android.com/apk/res-auto" xmlns:tools="http://schemas.android.com/tools" android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+    <include
+            layout="@layout/toolbar"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/include"/>
+    <Button
+            android:text="Verify"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" android:id="@+id/verifyBtn"
+            app:layout_constraintEnd_toEndOf="parent"
+            android:layout_marginEnd="32dp"
+            app:layout_constraintTop_toTopOf="@+id/enrolBtn"/>
+    <Button
+            android:text="Enroll"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" android:id="@+id/enrolBtn"
+            app:layout_constraintStart_toStartOf="parent" android:layout_marginStart="32dp"
+            android:layout_marginTop="32dp" app:layout_constraintTop_toBottomOf="@+id/include"/>
+    <View
+            android:id="@+id/divider"
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="?android:attr/listDivider"
+            tools:layout_editor_absoluteX="0dp" app:layout_constraintTop_toBottomOf="@+id/enrolBtn"
+            android:layout_marginTop="16dp"/>
+    <TextView
+            android:text="Connection Status"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" android:id="@+id/textView"
+            app:layout_constraintTop_toBottomOf="@+id/divider" app:layout_constraintStart_toStartOf="parent"
+            android:layout_marginStart="16dp" android:layout_marginTop="24dp" android:textStyle="bold"
+            android:textColor="@android:color/black" android:textSize="18sp"/>
+    <TextView
+            tools:text="Connected"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" android:id="@+id/deviceStatus"
+            app:layout_constraintTop_toBottomOf="@+id/textView" app:layout_constraintStart_toStartOf="@+id/textView"
+            android:layout_marginTop="8dp"/>
+    <TextView
+            android:text="Device Name"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" android:id="@+id/textView8"
+            app:layout_constraintTop_toBottomOf="@+id/deviceStatus" app:layout_constraintStart_toStartOf="@+id/deviceStatus"
+            android:layout_marginTop="16dp" android:textStyle="bold" android:textSize="18sp"
+            android:textColor="@android:color/black"/>
+    <TextView
+            tools:text="RaspBerryPi"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" android:id="@+id/deviceName"
+            android:layout_marginTop="8dp"
+            app:layout_constraintTop_toBottomOf="@+id/textView8" app:layout_constraintStart_toStartOf="@+id/textView8"
+    />
+    <TextView
+            android:text="Device Address"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" android:id="@+id/textView10"
+            app:layout_constraintTop_toBottomOf="@+id/deviceName" app:layout_constraintStart_toStartOf="@+id/deviceName"
+            android:layout_marginTop="16dp" android:textStyle="bold" android:textColor="@android:color/black"
+            android:textSize="18sp"/>
+    <TextView
+            android:text="00:00:00:00:00:00"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" android:id="@+id/deviceAdd"
+            app:layout_constraintTop_toBottomOf="@+id/textView10" app:layout_constraintStart_toStartOf="@+id/textView10"
+            android:layout_marginTop="8dp"/>
+    <View
+            android:id="@+id/divider3"
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="?android:attr/listDivider"
+            tools:layout_editor_absoluteX="-25dp" android:layout_marginTop="32dp"
+            app:layout_constraintTop_toBottomOf="@+id/deviceAdd"/>
+    <TextView
+            android:text='" "'
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/divider3" android:textStyle="bold|italic" android:textSize="36sp"
+            android:padding="10dp" android:typeface="monospace" android:id="@+id/updateTxt"
+            android:textAlignment="center"/>
+
+
+</android.support.constraint.ConstraintLayout>

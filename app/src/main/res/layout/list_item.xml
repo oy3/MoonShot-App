@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:tools="http://schemas.android.com/tools"
+        android:id="@+id/cardRipple"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="?android:selectableItemBackground"
+        android:orientation="horizontal"
+        tools:layout_editor_absoluteY="10dp"
+        tools:layout_editor_absoluteX="10dp">
+
+    <android.support.constraint.ConstraintLayout
+            xmlns:app="http://schemas.android.com/apk/res-auto"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="10dp">
+
+
+        <ImageView
+                android:layout_width="30dp"
+                android:layout_height="30dp" app:srcCompat="@drawable/bluetoothsignal"
+                android:id="@+id/imageView4"
+                android:layout_marginBottom="8dp" app:layout_constraintBottom_toBottomOf="parent"
+                android:layout_marginTop="8dp" app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintStart_toStartOf="parent"/>
+        <TextView
+                android:text="TextView"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" android:id="@+id/dName"
+                app:layout_constraintTop_toTopOf="parent" android:textStyle="bold" android:textSize="22sp"
+                android:textColor="@android:color/black" android:layout_marginTop="5dp"
+                app:layout_constraintStart_toEndOf="@+id/imageView4" android:layout_marginStart="16dp"
+                android:paddingEnd="20dp"/>
+        <TextView
+                android:text="TextView"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" android:id="@+id/dAddress"
+                app:layout_constraintTop_toBottomOf="@+id/dName" app:layout_constraintStart_toStartOf="@+id/dName"
+                android:textSize="18sp" android:paddingEnd="20dp"/>
+        <View
+                android:id="@+id/divider2"
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:background="?android:attr/listDivider"
+                app:layout_constraintTop_toBottomOf="@+id/dAddress"
+                android:layout_marginTop="8dp" app:layout_constraintBottom_toBottomOf="parent"
+                android:layout_marginBottom="8dp" app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"/>
+    </android.support.constraint.ConstraintLayout>
+</LinearLayout>
