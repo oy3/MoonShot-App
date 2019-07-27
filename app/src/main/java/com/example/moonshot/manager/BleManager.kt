@@ -1,14 +1,14 @@
-package com.example.moonshot
+package com.example.moonshot.manager
 
 import android.bluetooth.*
 import android.content.Context
 import android.os.Vibrator
 import android.util.Log
-import com.example.moonshot.BluetoothConstants.NOTIFY_CHARACTERISTIC
-import com.example.moonshot.BluetoothConstants.NOTIFY_DESCRIPTOR
-import com.example.moonshot.BluetoothConstants.NOTIFY_SERVICE
-import com.example.moonshot.BluetoothConstants.WRITE_CHARACTERISTIC
-import com.example.moonshot.BluetoothConstants.WRITE_SERVICE
+import com.example.moonshot.utils.BluetoothConstants.NOTIFY_CHARACTERISTIC
+import com.example.moonshot.utils.BluetoothConstants.NOTIFY_DESCRIPTOR
+import com.example.moonshot.utils.BluetoothConstants.NOTIFY_SERVICE
+import com.example.moonshot.utils.BluetoothConstants.WRITE_CHARACTERISTIC
+import com.example.moonshot.utils.BluetoothConstants.WRITE_SERVICE
 import java.io.File
 import java.io.FileOutputStream
 import java.io.IOException

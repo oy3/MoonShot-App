@@ -2,12 +2,10 @@ package com.example.moonshot
 
 import android.bluetooth.BluetoothDevice
 import android.content.Context
-import android.content.Intent
 import android.support.v7.widget.RecyclerView
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import com.example.moonshot.details.DetailsActivity
 import kotlinx.android.synthetic.main.list_item.view.*
 
 class BLEAdapter(private val context: Context, private val listener: OnDeviceClickListener) :
@@ -16,7 +14,7 @@ class BLEAdapter(private val context: Context, private val listener: OnDeviceCli
     var bleList: List<BluetoothDevice> = listOf()
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
-        val view = LayoutInflater.from(parent.ctx).inflate(R.layout.list_item2, parent, false)
+        val view = LayoutInflater.from(parent.ctx).inflate(R.layout.list_item, parent, false)
         return ViewHolder(view)
     }
 

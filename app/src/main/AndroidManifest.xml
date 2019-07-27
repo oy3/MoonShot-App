@@ -7,12 +7,12 @@
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
 
-    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
-    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
 
     <uses-permission android:name="android.permission.VIBRATE"/>
 
-    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.INTERNET"/>
 
     <!--<permission android:name="android.permission.BLUETOOTH" android:label="BLUETOOTH"/>-->
     <!--<permission android:name="android.permission.BLUETOOTH_ADMIN"/>-->
@@ -23,14 +23,14 @@
     <uses-feature android:name="android.hardware.location.gps"/>
 
     <application
-            android:name=".MoonshotApplication"
+            android:name=".utils.MoonshotApplication"
             android:allowBackup="true"
             android:icon="@mipmap/ic_launcher"
             android:label="@string/app_name"
             android:roundIcon="@mipmap/ic_launcher_round"
             android:supportsRtl="true"
             android:theme="@style/AppTheme">
-        <activity android:name=".SplashActivity"
+        <activity android:name=".splash.SplashActivity"
                   android:noHistory="true"
                   android:theme="@style/SplashTheme">
             <intent-filter>
@@ -42,12 +42,21 @@
 
         <activity android:name=".MainActivity"
                   android:theme="@style/AppTheme.NoActionBar"/>
-        <activity android:name=".TicketActivity"
+        <activity android:name=".enroll.EnrollActivity"
+                  android:theme="@style/AppTheme.NoActionBar"
+                  android:parentActivityName=".MainActivity"/>
+        <activity android:name=".enroll.EnrollDetailsActivity"
+                  android:parentActivityName=".enroll.EnrollActivity"/>
+        <activity android:name=".meal_ticket.TicketActivity"
+                  android:theme="@style/AppTheme.NoActionBar"
+                  android:parentActivityName=".MainActivity"/>
+        <activity android:name=".meal_ticket.TicketDetailsActivity"
+                  android:parentActivityName=".meal_ticket.TicketActivity"/>
+        <activity android:name=".confirm_attendance.ConfirmActivity"
                   android:parentActivityName=".MainActivity"
                   android:theme="@style/AppTheme.NoActionBar"/>
-        <activity android:name=".details.DetailsActivity"
-                  android:parentActivityName=".TicketActivity"
-                  android:theme="@style/AppTheme.NoActionBar"/>
+        <activity android:name=".confirm_attendance.ConfirmDetailsActivity"
+                  android:parentActivityName=".confirm_attendance.ConfirmActivity"/>
 
     </application>
 

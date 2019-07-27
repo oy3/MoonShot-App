@@ -3,10 +3,10 @@
             xmlns:app="http://schemas.android.com/apk/res-auto"
             xmlns:tools="http://schemas.android.com/tools" android:id="@+id/navigation"
             app:startDestination="@id/btOnFragment3">
-    <fragment android:id="@+id/btOnFragment3" android:name="com.example.moonshot.BtOnFragment"
+    <fragment android:id="@+id/btOnFragment3" android:name="com.example.moonshot.frag.BtOnFragment"
               android:label="BtOnFragment">
         <action android:id="@+id/action_btOnFragment3_to_btOffFragment2" app:destination="@id/btOffFragment2"/>
     </fragment>
-    <fragment android:id="@+id/btOffFragment2" android:name="com.example.moonshot.BtOffFragment"
+    <fragment android:id="@+id/btOffFragment2" android:name="com.example.moonshot.frag.BtOffFragment"
               android:label="fragment_bt_off" tools:layout="@layout/fragment_bt_off"/>
 </navigation>

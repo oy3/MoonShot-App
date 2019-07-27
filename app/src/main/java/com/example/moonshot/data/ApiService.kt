@@ -1,4 +1,4 @@
-package com.example.moonshot
+package com.example.moonshot.data
 
 import android.util.Log
 import io.reactivex.Single

@@ -1,7 +1,8 @@
-package com.example.moonshot
+package com.example.moonshot.utils
 
 import android.app.Application
 import android.content.Context
+import com.example.moonshot.manager.BLEManager
 
 class MoonshotApplication :Application() {
 
