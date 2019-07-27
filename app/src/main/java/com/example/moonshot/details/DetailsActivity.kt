@@ -1,6 +1,8 @@
 package com.example.moonshot.details
 
+import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothDevice
+import android.content.Intent
 import android.os.Bundle
 import android.support.v7.app.AlertDialog
 import android.support.v7.app.AppCompatActivity
@@ -19,6 +21,7 @@ import kotlinx.android.synthetic.main.activity_detail.*
 import kotlinx.android.synthetic.main.toolbar.*
 import org.json.JSONObject
 import retrofit2.HttpException
+import java.net.ConnectException
 
 class DetailsActivity : AppCompatActivity() {
 
@@ -50,16 +53,31 @@ class DetailsActivity : AppCompatActivity() {
                     service.uploadFingerprint(
                         data = data
                     ).observeOn(AndroidSchedulers.mainThread()).onErrorReturn {
-                        val exception = (it as HttpException)
-                        val message = JSONObject(exception.response().errorBody()?.string()).getString("message")
+                        when (it) {
+                            is HttpException -> {
+                                val message = JSONObject(it.response().errorBody()?.string()).getString("message")
 
-                        Log.i(TAG, "Message from the server ===== $message")
+                                Log.i(TAG, "Message from the server ===== $message")
 
-                        ApiService.Response(
-                            false,
-                            message,
-                            null
-                        )
+                                ApiService.Response(
+                                    false,
+                                    message,
+                                    null
+                                )
+                            }
+                            is ConnectException -> {
+                                ApiService.Response (
+                                    false, "No internet connection", null
+                                )
+                            }
+                            else -> {
+                                it.printStackTrace()
+                                ApiService.Response (
+                                    false, "Unknown error", null
+                                )
+                            }
+                        }
+
                     }.doOnSuccess {
                         if (!it.success) {
 
@@ -110,7 +128,7 @@ class DetailsActivity : AppCompatActivity() {
     override fun onDestroy() {
         Log.i(TAG, "onDestroy called")
 //        if (manager.isConnected()) manager.disconnectGattServer()
-//        manager.disconnectGattServer()
+        manager.disconnectGattServer()
         super.onDestroy()
     }
 
@@ -125,15 +143,15 @@ class DetailsActivity : AppCompatActivity() {
     }
 
     override fun onOptionsItemSelected(item: MenuItem?): Boolean {
-        return when (item?.itemId) {
+        when (item?.itemId) {
             R.id.action_disconnect -> {
-                disconnectDialog()
-                updateTxt.text = ""
-//                manager.disconnectGattServer()
-                return true
+//                disconnectDialog()
+//                updateTxt.text = ""
+                manager.disconnectGattServer()
+                finish()
             }
-            else -> super.onOptionsItemSelected(item)
         }
+        return super.onOptionsItemSelected(item)
     }
 
     private fun disconnectDialog() {

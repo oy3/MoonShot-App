@@ -3,7 +3,6 @@ package com.example.moonshot
 import android.bluetooth.*
 import android.content.Context
 import android.os.Vibrator
-import android.support.annotation.MainThread
 import android.util.Log
 import com.example.moonshot.BluetoothConstants.NOTIFY_CHARACTERISTIC
 import com.example.moonshot.BluetoothConstants.NOTIFY_DESCRIPTOR
@@ -13,7 +12,7 @@ import com.example.moonshot.BluetoothConstants.WRITE_SERVICE
 import java.io.File
 import java.io.FileOutputStream
 import java.io.IOException
-import java.util.*
+
 
 class BLEManager(private val context: Context) {
     val TAG = "BLEManager"
@@ -66,19 +65,6 @@ class BLEManager(private val context: Context) {
                         )
                     }
                 }
-//                enableSensor()
-//                val service = globalGatt.getService(WRITE_SERVICE)
-//                if (service != null) {
-//                    val characteristic = service.getCharacteristic(WRITE_CHARACTERISTIC)
-//                    if (characteristic != null) {
-//                        globalGatt.setCharacteristicNotification(characteristic, true)
-//                    }
-//                    val descriptor = characteristic.getDescriptor(WRITE_DESCRIPTOR)
-//                    if (descriptor != null) {
-//                        descriptor.value = BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE
-//                        globalGatt.writeDescriptor(descriptor)
-//                    }
-//                }
 
             } else {
                 Log.i(TAG, "Didn't connect to GATT services")
@@ -94,7 +80,6 @@ class BLEManager(private val context: Context) {
         ) {
             if (WRITE_CHARACTERISTIC == characteristic!!.uuid) {
                 Log.i(TAG, "onCharacteristicRead :: " + characteristic.uuid + ", " + characteristic.value)
-//                writeToSensor(gatt!!)
             }
 
         }
@@ -142,8 +127,6 @@ class BLEManager(private val context: Context) {
 
 
                 hasGottenCardUUID -> {
-                    //Write to file
-//                    writeToFingerPrintFile(fingerPrintFile, data)
                     fingerprintBytes += fingerPrintData
                     Log.i(TAG, "Finger print path ====== ${fingerPrintFile.absoluteFile}")
                 }
@@ -175,7 +158,6 @@ class BLEManager(private val context: Context) {
         }
 
         override fun onDescriptorWrite(gatt: BluetoothGatt?, descriptor: BluetoothGattDescriptor?, status: Int) {
-//            enableSensor(globalGatt!!)
         }
 
     }
@@ -194,7 +176,7 @@ class BLEManager(private val context: Context) {
         globalGatt = device.connectGatt(context, false, BLEGattClientCallback(device))
     }
 
-    fun disconnectGattServer() {
+    fun  disconnectGattServer() {
         Log.i(TAG, "Disconnected from globalGatt server")
         globalGatt?.let {
             it.disconnect()
@@ -210,13 +192,13 @@ class BLEManager(private val context: Context) {
         fun verificationSuccessful()
     }
 
-     fun enableSensor() {
+    fun enableSensor() {
 
         val characteristic: BluetoothGattCharacteristic? =
             globalGatt?.getService(WRITE_SERVICE)?.getCharacteristic(WRITE_CHARACTERISTIC)
         val bytesToBeWritten = "ENROL".toByteArray()
         characteristic!!.value = bytesToBeWritten
-         globalGatt?.writeCharacteristic(characteristic)
+        globalGatt?.writeCharacteristic(characteristic)
         Log.i(TAG, "Enabling service")
     }
 

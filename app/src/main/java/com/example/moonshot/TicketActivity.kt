@@ -1,5 +1,6 @@
 package com.example.moonshot
 
+import android.Manifest
 import android.annotation.TargetApi
 import android.app.ProgressDialog
 import android.bluetooth.BluetoothAdapter
@@ -12,6 +13,7 @@ import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
 import android.os.Handler
+import android.support.v4.content.ContextCompat
 import android.support.v4.widget.SwipeRefreshLayout
 import android.support.v7.app.AlertDialog
 import android.support.v7.app.AppCompatActivity
@@ -48,7 +50,6 @@ class TicketActivity : AppCompatActivity(), BLEAdapter.OnDeviceClickListener {
         setSupportActionBar(toolbar)
         supportActionBar?.setDisplayShowTitleEnabled(false)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
-//        supportActionBar?.setDisplayShowHomeEnabled(true)
 
         moonTxt.text = ""
         shotTxt.text = getString(R.string.meal_ticket)
@@ -73,6 +74,16 @@ class TicketActivity : AppCompatActivity(), BLEAdapter.OnDeviceClickListener {
             // Marshmallow+ Permission APIs
             fuckMarshMallow()
         }
+
+        btSwitch.setOnCheckedChangeListener { _, isChecked ->
+            if (isChecked) {
+                // The toggle is enabled
+                btRequired()
+            } else {
+                // The toggle is disabled
+                btOff()
+            }
+        }
     }
 
 
@@ -80,7 +91,6 @@ class TicketActivity : AppCompatActivity(), BLEAdapter.OnDeviceClickListener {
         super.onResume()
         Log.i(TAG, "onResume called")
 
-        btRequired()
 
         if (!packageManager.hasSystemFeature(PackageManager.FEATURE_BLUETOOTH_LE)) {
             Toast.makeText(this, "No BLE Support.", Toast.LENGTH_SHORT).show()
@@ -157,16 +167,29 @@ class TicketActivity : AppCompatActivity(), BLEAdapter.OnDeviceClickListener {
         Log.i(TAG, "Stopped scan")
     }
 
+    private fun btOff() {
+        mBTAdapter.disable() // turn off
+        Toast.makeText(applicationContext, "Bluetooth turned Off", Toast.LENGTH_SHORT).show()
+        btRequired()
+    }
+
     private fun btRequired() {
         mBTAdapter = BluetoothAdapter.getDefaultAdapter()
         if (mBTAdapter.isEnabled) {
             errorBt.visibility = View.GONE
+            btSwitch.isChecked = true
         } else {
+            errorBt.visibility = View.VISIBLE
+            btSwitch.isChecked = false
             val enableBtIntent = Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE)
             startActivityForResult(enableBtIntent, REQUEST_ENABLE_BT)
-            errorBt.visibility = View.VISIBLE
 
-
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_ADMIN)
+                != PackageManager.PERMISSION_GRANTED
+            ) {
+                // Permission is not granted
+                finish()
+            }
         }
     }
 
@@ -178,7 +201,7 @@ class TicketActivity : AppCompatActivity(), BLEAdapter.OnDeviceClickListener {
         progressDialog.setMessage("Connecting to " + device.name) // Setting Message
         progressDialog.setTitle("Please wait") // Setting Title
         progressDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER) // Progress Dialog Style Spinner
-         progressDialog.show() // Display Progress Dialog
+        progressDialog.show() // Display Progress Dialog
         progressDialog.setCancelable(false)
         Thread(Runnable {
             try {
