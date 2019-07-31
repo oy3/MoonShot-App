@@ -71,13 +71,14 @@ class TicketActivity : AppCompatActivity(), BLEAdapter.OnDeviceClickListener {
         setContentView(R.layout.activity_device_list)
         Log.i(TAG, "onCreate called")
 
-        val toolbar = findViewById<Toolbar>(R.id.toolbar)
-        setSupportActionBar(toolbar)
-        supportActionBar?.setDisplayShowTitleEnabled(false)
-        supportActionBar?.setDisplayHomeAsUpEnabled(true)
+//        val toolbar = findViewById<Toolbar>(R.id.toolbar)
+//        setSupportActionBar(toolbar)
+//        supportActionBar?.setDisplayShowTitleEnabled(false)
+//        supportActionBar?.setDisplayHomeAsUpEnabled(true)
 
 
-        toolbar_title.text = getString(R.string.meal_ticket)
+        supportActionBar?.title = getString(R.string.meal_ticket)
+//        toolbar_title.text = getString(R.string.meal_ticket)
 
         mSwipeRefreshLayout = findViewById(R.id.pullToRefresh)
         recyclerView = findViewById(R.id.recyclerView)

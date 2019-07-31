@@ -10,7 +10,7 @@
             android:text="Confirm Attendance"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:id="@+id/button"
+            android:id="@+id/confirmBtn"
             android:background="@drawable/round_button"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"
@@ -22,16 +22,22 @@
             android:paddingEnd="20dp"
             android:paddingStart="20dp"
             android:layout_marginTop="32dp"/>
+    <ImageView
+            android:layout_width="150dp"
+            android:layout_height="150dp" tools:srcCompat="@drawable/card" android:id="@+id/imgConfirm"
+            app:layout_constraintTop_toBottomOf="@+id/confirmBtn" android:layout_marginTop="32dp"
+            app:layout_constraintStart_toStartOf="parent" app:layout_constraintEnd_toEndOf="parent"
+    />
     <TextView
             tools:text="TextView"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:id="@+id/textView6"
-            app:layout_constraintTop_toBottomOf="@+id/button"
+            android:id="@+id/txtUpdate"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             android:textSize="36sp"
             android:textStyle="bold"
             android:textColor="@android:color/black"
-            android:layout_marginTop="32dp"/>
+            android:layout_marginTop="32dp" app:layout_constraintTop_toBottomOf="@+id/imgConfirm"
+            android:textAlignment="center" android:layout_marginStart="24dp" android:layout_marginEnd="24dp"/>
 </android.support.constraint.ConstraintLayout>

@@ -8,17 +8,21 @@ import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.adapter.rxjava2.RxJava2CallAdapterFactory
 import retrofit2.converter.gson.GsonConverterFactory
-import retrofit2.http.Body
-import retrofit2.http.POST
+import retrofit2.http.*
 import java.util.concurrent.TimeUnit
 
 interface ApiService {
 
-//    @Multipart
+
     @POST("enroll")
     fun uploadFingerprint(
         @Body data: HashMap<String, String>
     ): Single<Response>
+
+    @GET("identify/{UUID}")
+    fun verifyFingerPrint(
+        @Path("UUID") UUID: String
+    ): Single<VerifyResponse>
 
     companion object {
 
@@ -47,5 +51,19 @@ interface ApiService {
         val success: Boolean,
         val message: String?,
         val error: String?
+    )
+
+    data class VerifyResponse(
+        val success: Boolean,
+        val data: Data?
+    )
+
+    data class Data(
+        val _id: String,
+        val UUID: String,
+        val fingerprintTemplate: String,
+        val createdAt: String,
+        val updatedAt: String,
+        val __v: Int
     )
 }

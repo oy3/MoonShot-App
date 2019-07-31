@@ -55,15 +55,18 @@ class ConfirmActivity : AppCompatActivity(), BLEAdapter.OnDeviceClickListener {
         Thread(Runnable {
             try {
                 Thread.sleep(2500)
+
+                val intent = Intent(this, ConfirmDetailsActivity::class.java)
+                intent.putExtra(EXTRA_ID, device)
+                startActivity(intent)
+
             } catch (e: Exception) {
                 e.printStackTrace()
             }
             progressDialog.dismiss()
         }).start()
 
-        val intent = Intent(this, ConfirmDetailsActivity::class.java)
-        intent.putExtra(EXTRA_ID, device)
-        startActivity(intent)
+
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -71,12 +74,13 @@ class ConfirmActivity : AppCompatActivity(), BLEAdapter.OnDeviceClickListener {
         setContentView(R.layout.activity_device_list)
         Log.i(TAG, "onCreate called")
 
-        val toolbar = findViewById<Toolbar>(R.id.toolbar)
-        setSupportActionBar(toolbar)
-        supportActionBar?.setDisplayShowTitleEnabled(false)
-        supportActionBar?.setDisplayHomeAsUpEnabled(true)
+//        val toolbar = findViewById<Toolbar>(R.id.toolbar)
+//        setSupportActionBar(toolbar)
+//        supportActionBar?.setDisplayShowTitleEnabled(false)
+//        supportActionBar?.setDisplayHomeAsUpEnabled(true)
 
-        toolbar_title.text = getString(R.string.confirm_friday_attendance)
+        supportActionBar?.title = getString(R.string.confirm_friday_attendance)
+//        toolbar_title.text = getString(R.string.confirm_friday_attendance)
 
         mSwipeRefreshLayout = findViewById(R.id.pullToRefresh)
         recyclerView = findViewById(R.id.recyclerView)

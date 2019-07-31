@@ -36,6 +36,12 @@ class EnrollDetailsActivity : AppCompatActivity() {
 
     private val bluetoothManagerCallback by lazy {
         object : BLEManager.BluetoothManagerCallback() {
+            override fun scannerImage(img: Int) {
+                runOnUiThread {
+                    imgEnrollImg.setImageResource(img)
+                }
+            }
+
             override fun toastScannerMessage(message: String) {
                 runOnUiThread {
                     txtEnrollUpdate.text = message
@@ -52,43 +58,44 @@ class EnrollDetailsActivity : AppCompatActivity() {
                 disposable.add(
                     service.uploadFingerprint(
                         data = data
-                    ).observeOn(AndroidSchedulers.mainThread()).onErrorReturn {
-                        when (it) {
-                            is HttpException -> {
-                                val message = JSONObject(it.response().errorBody()?.string()).getString("message")
+                    ).observeOn(AndroidSchedulers.mainThread())
+                        .onErrorReturn {
+                            when (it) {
+                                is HttpException -> {
+                                    val message = JSONObject(it.response().errorBody()?.string()).getString("message")
 
-                                Log.i(TAG, "Message from the server ===== $message")
+                                    Log.i(TAG, "Message from the server ===== $message")
 
-                                ApiService.Response(
-                                    false,
-                                    message,
-                                    null
-                                )
+                                    ApiService.Response(
+                                        false,
+                                        message,
+                                        null
+                                    )
+                                }
+                                is ConnectException -> {
+                                    ApiService.Response(
+                                        false, "No internet connection", null
+                                    )
+                                }
+                                else -> {
+                                    it.printStackTrace()
+                                    ApiService.Response(
+                                        false, "Unknown error", null
+                                    )
+                                }
                             }
-                            is ConnectException -> {
-                                ApiService.Response(
-                                    false, "No internet connection", null
-                                )
-                            }
-                            else -> {
-                                it.printStackTrace()
-                                ApiService.Response(
-                                    false, "Unknown error", null
-                                )
-                            }
-                        }
 
-                    }.doOnSuccess {
-                        if (!it.success) {
+                        }.doOnSuccess {
+                            if (!it.success) {
 
-                        } else {
-                            manager.writeToSensor(false)
-                        }
-                        runOnUiThread {
-                            txtEnrollUpdate.text = it.message
-                        }
-                        Toast.makeText(this@EnrollDetailsActivity, it.message, Toast.LENGTH_SHORT).show()
-                    }.subscribe()
+                            } else {
+                                manager.writeToSensor(false)
+                            }
+                            runOnUiThread {
+                                txtEnrollUpdate.text = it.message
+                            }
+                            Toast.makeText(this@EnrollDetailsActivity, it.message, Toast.LENGTH_SHORT).show()
+                        }.subscribe()
                 )
             }
         }

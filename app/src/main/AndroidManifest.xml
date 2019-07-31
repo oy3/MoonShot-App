@@ -42,19 +42,22 @@
 
         <activity android:name=".MainActivity"
                   android:theme="@style/AppTheme.NoActionBar"/>
+
         <activity android:name=".enroll.EnrollActivity"
-                  android:theme="@style/AppTheme.NoActionBar"
                   android:parentActivityName=".MainActivity"/>
+
         <activity android:name=".enroll.EnrollDetailsActivity"
                   android:parentActivityName=".enroll.EnrollActivity"/>
+
         <activity android:name=".meal_ticket.TicketActivity"
-                  android:theme="@style/AppTheme.NoActionBar"
                   android:parentActivityName=".MainActivity"/>
+
         <activity android:name=".meal_ticket.TicketDetailsActivity"
                   android:parentActivityName=".meal_ticket.TicketActivity"/>
+
         <activity android:name=".confirm_attendance.ConfirmActivity"
-                  android:parentActivityName=".MainActivity"
-                  android:theme="@style/AppTheme.NoActionBar"/>
+                  android:parentActivityName=".MainActivity"/>
+
         <activity android:name=".confirm_attendance.ConfirmDetailsActivity"
                   android:parentActivityName=".confirm_attendance.ConfirmActivity"/>
 

@@ -2,8 +2,11 @@ package com.example.moonshot.manager
 
 import android.bluetooth.*
 import android.content.Context
+import android.media.Image
 import android.os.Vibrator
 import android.util.Log
+import android.widget.ImageView
+import com.example.moonshot.R
 import com.example.moonshot.utils.BluetoothConstants.NOTIFY_CHARACTERISTIC
 import com.example.moonshot.utils.BluetoothConstants.NOTIFY_DESCRIPTOR
 import com.example.moonshot.utils.BluetoothConstants.NOTIFY_SERVICE
@@ -97,30 +100,61 @@ class BLEManager(private val context: Context) {
                 stringValue.contains("UUID") -> {
                     hasGottenCardUUID = true
                     uuid = stringValue.split("::")[1] //UUID::e2b371e3
+
+                        managerCallback.cardScanCompleted(uuid)
+                        Log.i(TAG, "For verify :: $uuid")
+
                 }
-                stringValue.contains("PLACE CARD") -> managerCallback.toastScannerMessage(stringValue)
-                stringValue.contains("PLACE FINGER") -> managerCallback.toastScannerMessage(stringValue)
+                stringValue.contains("PLACE CARD") -> {
+                    managerCallback.toastScannerMessage(stringValue)
+                    val image = R.drawable.card
+                    managerCallback.scannerImage(image)
+                }
+                stringValue.contains("PLACE FINGER") -> {
+                    managerCallback.toastScannerMessage(stringValue)
+                    val image = R.drawable.fingerprint
+
+                    managerCallback.scannerImage(image)
+                }
                 stringValue.contains("PROCESS COMPLETE") -> {
+
                     val vibratorService = context.getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
                     vibratorService.vibrate(500)
                     managerCallback.toastScannerMessage(stringValue)
                     managerCallback.fingerPrintScanCompleted(fingerprintBytes, uuid)
+                    val image = R.drawable.done
+                    managerCallback.scannerImage(image)
                     writeToSensor(false)
                 }
                 stringValue.contains("ENROLMENT FAILURE") -> {
+                    val image = R.drawable.error
+                    managerCallback.scannerImage(image)
                     managerCallback.toastScannerMessage(stringValue)
                     writeToSensor(false)
                 }
                 stringValue.contains("BAD FINGER") -> {
+                    val image = R.drawable.error_finger
+                    managerCallback.scannerImage(image)
                     managerCallback.toastScannerMessage(stringValue)
                     writeToSensor(false)
                 }
                 stringValue.contains("NFC FAILED") -> {
+                    val image = R.drawable.error
+                    managerCallback.scannerImage(image)
                     managerCallback.toastScannerMessage(stringValue)
                     writeToSensor(false)
                 }
 
                 stringValue.contains("Finger is not presse") -> {
+                    val image = R.drawable.error_finger
+                    managerCallback.scannerImage(image)
+                    managerCallback.toastScannerMessage(stringValue)
+                    writeToSensor(false)
+                }
+
+                stringValue.contains("COULD NOT READ CARD") -> {
+                    val image = R.drawable.error
+                    managerCallback.scannerImage(image)
                     managerCallback.toastScannerMessage(stringValue)
                     writeToSensor(false)
                 }
@@ -176,7 +210,7 @@ class BLEManager(private val context: Context) {
         globalGatt = device.connectGatt(context, false, BLEGattClientCallback(device))
     }
 
-    fun  disconnectGattServer() {
+    fun disconnectGattServer() {
         Log.i(TAG, "Disconnected from globalGatt server")
         globalGatt?.let {
             it.disconnect()
@@ -202,18 +236,7 @@ class BLEManager(private val context: Context) {
         Log.i(TAG, "Enabling service")
     }
 
-    private fun readSensor(gatt: BluetoothGatt) {
-
-        val characteristic: BluetoothGattCharacteristic? =
-            gatt.getService(WRITE_SERVICE)
-                .getCharacteristic(WRITE_CHARACTERISTIC)
-
-        gatt.readCharacteristic(characteristic)
-        Log.i(TAG, "Reading service")
-    }
-
     fun writeToSensor(on: Boolean) {
-        Log.i(TAG, "Writing service")
         hasGottenCardUUID = !on
         fingerprintBytes = ""
 
@@ -227,27 +250,57 @@ class BLEManager(private val context: Context) {
         descriptor?.value =
             if (on) BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE else BluetoothGattDescriptor.DISABLE_NOTIFICATION_VALUE
         globalGatt!!.writeDescriptor(descriptor)
+        Log.i(TAG, "Writing service")
 
     }
 
-    fun writeToFingerPrintFile(file: File, bytes: ByteArray) {
-        val outputStream = FileOutputStream(file, true)
-        try {
-            outputStream.write(bytes)
-        } catch (exception: IOException) {
-            Log.e(TAG, exception.toString())
-        } finally {
-            outputStream.close()
-        }
+    private fun readSensor(gatt: BluetoothGatt) {
+
+        val characteristic: BluetoothGattCharacteristic? =
+            gatt.getService(WRITE_SERVICE)
+                .getCharacteristic(WRITE_CHARACTERISTIC)
+
+        gatt.readCharacteristic(characteristic)
+        Log.i(TAG, "Reading service")
+    }
+
+    fun enableVerify(): Boolean {
+
+        val characteristic: BluetoothGattCharacteristic? =
+            globalGatt?.getService(WRITE_SERVICE)?.getCharacteristic(WRITE_CHARACTERISTIC)
+        val bytesToBeWritten = "READ_CARD".toByteArray()
+        characteristic!!.value = bytesToBeWritten
+        globalGatt?.writeCharacteristic(characteristic)
+        Log.i(TAG, "Enabling Verify service")
+        return true
+    }
+
+    fun verifySensor(on: Boolean) {
+        Log.i(TAG, "Verify sensor")
+        hasGottenCardUUID = !on
+        fingerprintBytes = ""
+
+        val characteristic: BluetoothGattCharacteristic? =
+            globalGatt!!.getService(NOTIFY_SERVICE)
+                .getCharacteristic(NOTIFY_CHARACTERISTIC)
+
+        globalGatt!!.setCharacteristicNotification(characteristic, on)
+        val descriptor =
+            characteristic?.getDescriptor(NOTIFY_DESCRIPTOR)
+        descriptor?.value =
+            if (on) BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE else BluetoothGattDescriptor.DISABLE_NOTIFICATION_VALUE
+        globalGatt!!.writeDescriptor(descriptor)
     }
 
     abstract class BluetoothManagerCallback {
         abstract fun toastScannerMessage(message: String)
+        abstract fun scannerImage(img: Int)
         open fun writeFile(data: ByteArray?) {}
         open fun fingerPrintScanCompleted(hexData: String, uuid: String) {}
         open fun fingerPrintScanFailed(errorMessage: String) {}
         open fun onConnected(device: BluetoothDevice) {}
         open fun onConnectionDisconnected() {}
+        open fun cardScanCompleted(uuid: String) {}
     }
 
 }
