@@ -15,6 +15,7 @@ import com.example.moonshot.utils.BluetoothConstants.WRITE_SERVICE
 import java.io.File
 import java.io.FileOutputStream
 import java.io.IOException
+import java.nio.charset.Charset
 
 
 class BLEManager(private val context: Context) {
@@ -101,8 +102,8 @@ class BLEManager(private val context: Context) {
                     hasGottenCardUUID = true
                     uuid = stringValue.split("::")[1] //UUID::e2b371e3
 
-                        managerCallback.cardScanCompleted(uuid)
-                        Log.i(TAG, "For verify :: $uuid")
+                    managerCallback.cardScanCompleted(uuid)
+                    Log.i(TAG, "For verify :: $uuid")
 
                 }
                 stringValue.contains("PLACE CARD") -> {
@@ -264,7 +265,7 @@ class BLEManager(private val context: Context) {
         Log.i(TAG, "Reading service")
     }
 
-    fun enableVerify(): Boolean {
+    fun enableVerify() {
 
         val characteristic: BluetoothGattCharacteristic? =
             globalGatt?.getService(WRITE_SERVICE)?.getCharacteristic(WRITE_CHARACTERISTIC)
@@ -272,24 +273,29 @@ class BLEManager(private val context: Context) {
         characteristic!!.value = bytesToBeWritten
         globalGatt?.writeCharacteristic(characteristic)
         Log.i(TAG, "Enabling Verify service")
-        return true
     }
 
-    fun verifySensor(on: Boolean) {
+    fun verifySensor(template: String) {
+
+        var previousValue = 0
+
+        val iterationTimes = template.length / 20
+        for (value in 1 until iterationTimes) {
+            val templateByte = if (value == iterationTimes) {
+                template.substring(previousValue until template.length - 1).toByteArray(Charsets.UTF_8)
+            } else {
+                template.substring(previousValue until (20 * value)).toByteArray(Charsets.UTF_8)
+            }
+            //Write the bytes to the sensor here
+            val characteristic: BluetoothGattCharacteristic? =
+                globalGatt?.getService(WRITE_SERVICE)?.getCharacteristic(WRITE_CHARACTERISTIC)
+            characteristic!!.value = templateByte
+            globalGatt?.writeCharacteristic(characteristic)
+
+            previousValue += 20
+        }
         Log.i(TAG, "Verify sensor")
-        hasGottenCardUUID = !on
-        fingerprintBytes = ""
 
-        val characteristic: BluetoothGattCharacteristic? =
-            globalGatt!!.getService(NOTIFY_SERVICE)
-                .getCharacteristic(NOTIFY_CHARACTERISTIC)
-
-        globalGatt!!.setCharacteristicNotification(characteristic, on)
-        val descriptor =
-            characteristic?.getDescriptor(NOTIFY_DESCRIPTOR)
-        descriptor?.value =
-            if (on) BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE else BluetoothGattDescriptor.DISABLE_NOTIFICATION_VALUE
-        globalGatt!!.writeDescriptor(descriptor)
     }
 
     abstract class BluetoothManagerCallback {

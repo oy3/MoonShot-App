@@ -50,9 +50,7 @@ class ConfirmDetailsActivity : AppCompatActivity() {
 
             override fun cardScanCompleted(uuid: String) {
 
-                Log.i(TAG, "UUID`>> $uuid")
-
-                val id = ("UUID")
+                Log.i(TAG, "UUID>> $uuid")
 
                 disposable.add(
                     service.verifyFingerPrint(uuid)
@@ -97,24 +95,25 @@ class ConfirmDetailsActivity : AppCompatActivity() {
                             if (!it.success) {
 
                             } else {
-                                manager.verifySensor(false)
+
+
+                                val item = it.data
+                                it.data?.UUID
+
+                                val _id = item?._id
+                                val template = item?.fingerprintTemplate
+                                val uuId = item?.UUID
+                                val cAt = item?.createdAt
+                                val uAt = item?.updatedAt
+                                val v = item?.__v
+                                manager.verifySensor(template!!)
+
+                                runOnUiThread {
+                                    txtUpdate.text = "Your UUID is :: " + it.data?.UUID
+                                }
+                                Log.i(TAG, _id)
+                                Toast.makeText(this@ConfirmDetailsActivity, it.data?.UUID, Toast.LENGTH_SHORT).show()
                             }
-                            val item = it.data
-                            it.data?.UUID
-
-                            val _id = item?._id
-                            val template = item?.fingerprintTemplate
-                            val uuId = item?.UUID
-                            val cAt = item?.createdAt
-                            val uAt = item?.updatedAt
-                            val v = item?.__v
-
-                            runOnUiThread {
-                                txtUpdate.text = "Your UUID is :: " + it.data?.UUID
-                            }
-                            Log.i(TAG, _id)
-                            Toast.makeText(this@ConfirmDetailsActivity, it.data?.UUID, Toast.LENGTH_SHORT).show()
-
                         }.subscribe()
                 )
             }
