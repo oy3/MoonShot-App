@@ -55,7 +55,8 @@ interface ApiService {
 
     data class VerifyResponse(
         val success: Boolean,
-        val data: Data?
+        val data: Data? = null,
+        val message: String? = null
     )
 
     data class Data(

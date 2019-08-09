@@ -2,20 +2,16 @@ package com.example.moonshot.manager
 
 import android.bluetooth.*
 import android.content.Context
-import android.media.Image
 import android.os.Vibrator
 import android.util.Log
-import android.widget.ImageView
 import com.example.moonshot.R
 import com.example.moonshot.utils.BluetoothConstants.NOTIFY_CHARACTERISTIC
 import com.example.moonshot.utils.BluetoothConstants.NOTIFY_DESCRIPTOR
 import com.example.moonshot.utils.BluetoothConstants.NOTIFY_SERVICE
 import com.example.moonshot.utils.BluetoothConstants.WRITE_CHARACTERISTIC
 import com.example.moonshot.utils.BluetoothConstants.WRITE_SERVICE
+import okio.ByteString.Companion.decodeHex
 import java.io.File
-import java.io.FileOutputStream
-import java.io.IOException
-import java.nio.charset.Charset
 
 
 class BLEManager(private val context: Context) {
@@ -41,6 +37,7 @@ class BLEManager(private val context: Context) {
             Log.i(TAG, "Connection successful ====== ${newState == BluetoothProfile.STATE_CONNECTED}")
 
             if (status == BluetoothGatt.GATT_FAILURE) {
+               managerCallback.onConnectionDisconnected()
                 disconnectGattServer()
                 return
 
@@ -54,6 +51,7 @@ class BLEManager(private val context: Context) {
                 deviceConnected = device
                 Log.i(TAG, "Discovering services...")
             } else if (newState == BluetoothProfile.STATE_DISCONNECTED) {
+                managerCallback.onConnectionDisconnected()
                 Log.i(TAG, "Disconnected from ${gatt?.device?.name ?: gatt?.device?.address}")
                 disconnectGattServer()
             }
@@ -160,6 +158,86 @@ class BLEManager(private val context: Context) {
                     writeToSensor(false)
                 }
 
+                stringValue.contains("#100C") -> {
+                    val image = R.drawable.error_finger
+                    managerCallback.scannerImage(image)
+                    managerCallback.toastScannerMessage("BAD FINGER")
+                    writeToSensor(false)
+                }
+
+                stringValue.contains("#100D") -> {
+                    val image = R.drawable.error
+                    managerCallback.scannerImage(image)
+                    managerCallback.toastScannerMessage("ENROLMENT FAILURE, TRY AGAIN")
+                    writeToSensor(false)
+                }
+
+                stringValue.contains("#1012") -> {
+                    val image = R.drawable.error_finger
+                    managerCallback.scannerImage(image)
+                    managerCallback.toastScannerMessage("FINGER IS NOT PRESSED")
+                    writeToSensor(false)
+                }
+
+                stringValue.contains("#1001") -> {
+                    val image = R.drawable.error_finger
+                    managerCallback.scannerImage(image)
+                    managerCallback.toastScannerMessage("CAPTURE TIMEOUT, TRY AGAIN")
+                    writeToSensor(false)
+                }
+
+                stringValue.contains("#1007") -> {
+                    val image = R.drawable.error
+                    managerCallback.scannerImage(image)
+                    managerCallback.toastScannerMessage("VERIFICATION FAILED")
+                    writeToSensor(false)
+                }
+
+                stringValue.contains("#1003") -> {
+                    val image = R.drawable.error
+                    managerCallback.scannerImage(image)
+                    managerCallback.toastScannerMessage("PRIOR BAD ENROLLMENT")
+                    writeToSensor(false)
+                }
+
+                stringValue.contains("#1006") -> {
+                    val image = R.drawable.error
+                    managerCallback.scannerImage(image)
+                    managerCallback.toastScannerMessage("MODULE ERROR")
+                    writeToSensor(false)
+                }
+
+
+                stringValue.contains("##100f") -> {
+                    val image = R.drawable.error
+                    managerCallback.scannerImage(image)
+                    managerCallback.toastScannerMessage("DEVICE ERROR")
+                    writeToSensor(false)
+                }
+
+                stringValue.contains("##1011") -> {
+                    val image = R.drawable.error
+                    managerCallback.scannerImage(image)
+                    managerCallback.toastScannerMessage("Invalid parameter")
+                    writeToSensor(false)
+                }
+
+                stringValue.contains("VERIFY SUCCESS") -> {
+                    val image = R.drawable.done
+                    managerCallback.scannerImage(image)
+                    managerCallback.toastScannerMessage("VERIFY SUCCESS")
+                    writeToSensor(false)
+                }
+
+                stringValue.contains("ERROR VERIFY CHECK #") -> {
+                    val image = R.drawable.error
+                    managerCallback.scannerImage(image)
+                    managerCallback.toastScannerMessage("VERIFY ERROR")
+                    writeToSensor(false)
+                }
+
+
+
 
                 hasGottenCardUUID -> {
                     fingerprintBytes += fingerPrintData
@@ -192,9 +270,6 @@ class BLEManager(private val context: Context) {
             writeToSensor(true)
         }
 
-        override fun onDescriptorWrite(gatt: BluetoothGatt?, descriptor: BluetoothGattDescriptor?, status: Int) {
-        }
-
     }
 
     private fun bytesToHex3(hashInBytes: ByteArray): String {
@@ -219,14 +294,6 @@ class BLEManager(private val context: Context) {
         }
     }
 
-    interface Enroll {
-        fun writeSuccessful()
-    }
-
-    interface Verify {
-        fun verificationSuccessful()
-    }
-
     fun enableSensor() {
 
         val characteristic: BluetoothGattCharacteristic? =
@@ -238,6 +305,7 @@ class BLEManager(private val context: Context) {
     }
 
     fun writeToSensor(on: Boolean) {
+
         hasGottenCardUUID = !on
         fingerprintBytes = ""
 
@@ -251,6 +319,7 @@ class BLEManager(private val context: Context) {
         descriptor?.value =
             if (on) BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE else BluetoothGattDescriptor.DISABLE_NOTIFICATION_VALUE
         globalGatt!!.writeDescriptor(descriptor)
+
         Log.i(TAG, "Writing service")
 
     }
@@ -265,37 +334,48 @@ class BLEManager(private val context: Context) {
         Log.i(TAG, "Reading service")
     }
 
-    fun enableVerify() {
-
+    fun writeToService(bytesToBeWritten: ByteArray) {
         val characteristic: BluetoothGattCharacteristic? =
             globalGatt?.getService(WRITE_SERVICE)?.getCharacteristic(WRITE_CHARACTERISTIC)
-        val bytesToBeWritten = "READ_CARD".toByteArray()
         characteristic!!.value = bytesToBeWritten
         globalGatt?.writeCharacteristic(characteristic)
-        Log.i(TAG, "Enabling Verify service")
     }
+
+
+
 
     fun verifySensor(template: String) {
 
-        var previousValue = 0
+        val raw = template.decodeHex().toByteArray()
 
-        val iterationTimes = template.length / 20
-        for (value in 1 until iterationTimes) {
-            val templateByte = if (value == iterationTimes) {
-                template.substring(previousValue until template.length - 1).toByteArray(Charsets.UTF_8)
+        var index = 0
+        while (index < raw.size) {
+
+            val chunkSize: IntRange = if (index + 19 > raw.lastIndex) {
+                IntRange(index, raw.lastIndex)
             } else {
-                template.substring(previousValue until (20 * value)).toByteArray(Charsets.UTF_8)
+                IntRange(index, index + 19)
             }
-            //Write the bytes to the sensor here
-            val characteristic: BluetoothGattCharacteristic? =
-                globalGatt?.getService(WRITE_SERVICE)?.getCharacteristic(WRITE_CHARACTERISTIC)
-            characteristic!!.value = templateByte
-            globalGatt?.writeCharacteristic(characteristic)
 
-            previousValue += 20
+            val chunkList = raw.slice(chunkSize)
+
+            val chunk = chunkList.toByteArray()
+            Thread.sleep(350)
+            index += 20
+
+            writeToService(chunk)
         }
-        Log.i(TAG, "Verify sensor")
 
+        Thread.sleep(350)
+        writeToService("VERIFY".toByteArray())
+    }
+
+    interface Enroll {
+        fun writeSuccessful()
+    }
+
+    interface Verify {
+        fun verificationSuccessful()
     }
 
     abstract class BluetoothManagerCallback {

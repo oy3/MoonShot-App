@@ -74,13 +74,7 @@ class ConfirmActivity : AppCompatActivity(), BLEAdapter.OnDeviceClickListener {
         setContentView(R.layout.activity_device_list)
         Log.i(TAG, "onCreate called")
 
-//        val toolbar = findViewById<Toolbar>(R.id.toolbar)
-//        setSupportActionBar(toolbar)
-//        supportActionBar?.setDisplayShowTitleEnabled(false)
-//        supportActionBar?.setDisplayHomeAsUpEnabled(true)
-
         supportActionBar?.title = getString(R.string.confirm_friday_attendance)
-//        toolbar_title.text = getString(R.string.confirm_friday_attendance)
 
         mSwipeRefreshLayout = findViewById(R.id.pullToRefresh)
         recyclerView = findViewById(R.id.recyclerView)
@@ -155,6 +149,7 @@ class ConfirmActivity : AppCompatActivity(), BLEAdapter.OnDeviceClickListener {
             errorBt.visibility = View.GONE
             btSwitch.isChecked = true
         } else {
+            stopScan()
             errorBt.visibility = View.VISIBLE
             btSwitch.isChecked = false
             val enableBtIntent = Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE)
@@ -163,16 +158,17 @@ class ConfirmActivity : AppCompatActivity(), BLEAdapter.OnDeviceClickListener {
             if (ContextCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_ADMIN)
                 != PackageManager.PERMISSION_GRANTED
             ) {
+                Toast.makeText(applicationContext, "Noooo", Toast.LENGTH_SHORT).show()
                 // Permission is not granted
-                finish()
+              finish()
             }
         }
     }
 
     private fun btOff() {
+        stopScan()
         mBTAdapter.disable() // turn off
         Toast.makeText(applicationContext, "Bluetooth turned Off", Toast.LENGTH_SHORT).show()
-        btRequired()
     }
 
     private fun scanLeDevice(enable: Boolean) {

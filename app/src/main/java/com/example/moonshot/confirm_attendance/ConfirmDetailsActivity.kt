@@ -9,13 +9,11 @@ import android.view.MenuItem
 import android.widget.Toast
 import com.example.moonshot.R
 import com.example.moonshot.data.ApiService
-import com.example.moonshot.enroll.EnrollDetailsActivity
 import com.example.moonshot.manager.BLEManager
 import com.example.moonshot.utils.MoonshotApplication
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
 import kotlinx.android.synthetic.main.activity_confirm.*
-import kotlinx.android.synthetic.main.activity_enroll.*
 import org.json.JSONObject
 import retrofit2.HttpException
 import java.net.ConnectException
@@ -36,6 +34,10 @@ class ConfirmDetailsActivity : AppCompatActivity() {
 
     private val bluetoothManagerCallback by lazy {
         object : BLEManager.BluetoothManagerCallback() {
+            override fun onConnectionDisconnected() {
+                finish()
+            }
+
             override fun scannerImage(img: Int) {
                 runOnUiThread {
                     imgConfirm.setImageResource(img)
@@ -55,7 +57,8 @@ class ConfirmDetailsActivity : AppCompatActivity() {
                 disposable.add(
                     service.verifyFingerPrint(uuid)
                         .observeOn(AndroidSchedulers.mainThread())
-                        .doOnError {
+                        .onErrorReturn {
+                            it.printStackTrace()
                             when (it) {
 
                                 is HttpException -> {
@@ -63,56 +66,55 @@ class ConfirmDetailsActivity : AppCompatActivity() {
 
                                     Log.i(TAG, "Message from the server ===== $message")
                                     Toast.makeText(this@ConfirmDetailsActivity, message, Toast.LENGTH_LONG).show()
-//                                val data = ApiService.VerifyResponse()
-//                                ApiService.VerifyResponse(
-//                                    false,
-//                                    data = ,
-//                                )
+
+                                    ApiService.VerifyResponse(
+                                        success = false,
+                                        message = "HttpException"
+                                    )
                                 }
                                 is ConnectException -> {
-                                    Toast.makeText(
-                                        this@ConfirmDetailsActivity,
-                                        "No internet connection",
-                                        Toast.LENGTH_LONG
+
+                                    ApiService.VerifyResponse(
+                                        success = false,
+                                        message = "No internet connection"
                                     )
-                                        .show()
-//                                ApiService.VerifyResponse(
-//                                    false, "No internet connection", null
-//                                )
                                 }
                                 else -> {
                                     it.printStackTrace()
-                                    Toast.makeText(this@ConfirmDetailsActivity, "Unknown error", Toast.LENGTH_LONG)
-                                        .show()
-//                                ApiService.VerifyResponse(
-//                                    false, "Unknown error", null
-//                                )
+
+                                    ApiService.VerifyResponse(
+                                        success = false,
+                                        message = "Unknown error"
+                                    )
                                 }
                             }
 
                         }
                         .doOnSuccess {
                             if (!it.success) {
-
+                                //Handle error here
+                                txtUpdate.text = it.message
                             } else {
-
-
+                                manager.writeToSensor(false)
                                 val item = it.data
                                 it.data?.UUID
 
                                 val _id = item?._id
                                 val template = item?.fingerprintTemplate
+
+
                                 val uuId = item?.UUID
                                 val cAt = item?.createdAt
                                 val uAt = item?.updatedAt
                                 val v = item?.__v
+
                                 manager.verifySensor(template!!)
 
                                 runOnUiThread {
-                                    txtUpdate.text = "Your UUID is :: " + it.data?.UUID
+                                    txtUpdate.text = it.message
                                 }
-                                Log.i(TAG, _id)
-                                Toast.makeText(this@ConfirmDetailsActivity, it.data?.UUID, Toast.LENGTH_SHORT).show()
+                                Log.i(TAG, "biometricId:: $_id")
+                                Toast.makeText(this@ConfirmDetailsActivity, it.message, Toast.LENGTH_SHORT).show()
                             }
                         }.subscribe()
                 )
@@ -132,7 +134,8 @@ class ConfirmDetailsActivity : AppCompatActivity() {
         supportActionBar?.title = dName
 
         confirmBtn.setOnClickListener {
-            manager.enableVerify()
+            //manager.enableVerify()
+            manager.writeToService(bytesToBeWritten = "READ_CARD".toByteArray(Charsets.UTF_8))
         }
     }
 
@@ -160,6 +163,7 @@ class ConfirmDetailsActivity : AppCompatActivity() {
 
     override fun onBackPressed() {
         manager.disconnectGattServer()
+        finish()
     }
 
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
