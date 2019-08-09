@@ -32,6 +32,8 @@ class ConfirmDetailsActivity : AppCompatActivity() {
 
     private val disposable = CompositeDisposable()
 
+    lateinit var _id: String
+
     private val bluetoothManagerCallback by lazy {
         object : BLEManager.BluetoothManagerCallback() {
             override fun onConnectionDisconnected() {
@@ -65,7 +67,7 @@ class ConfirmDetailsActivity : AppCompatActivity() {
                                     val message = JSONObject(it.response().errorBody()?.string()).getString("message")
 
                                     Log.i(TAG, "Message from the server ===== $message")
-                                    Toast.makeText(this@ConfirmDetailsActivity, message, Toast.LENGTH_LONG).show()
+//                                    Toast.makeText(this@ConfirmDetailsActivity, message, Toast.LENGTH_LONG).show()
 
                                     ApiService.VerifyResponse(
                                         success = false,
@@ -96,28 +98,81 @@ class ConfirmDetailsActivity : AppCompatActivity() {
                                 txtUpdate.text = it.message
                             } else {
                                 manager.writeToSensor(false)
+
                                 val item = it.data
                                 it.data?.UUID
 
-                                val _id = item?._id
-                                val template = item?.fingerprintTemplate
+                                _id = item!!._id
+                                val template = item.fingerprintTemplate
 
 
-                                val uuId = item?.UUID
-                                val cAt = item?.createdAt
-                                val uAt = item?.updatedAt
-                                val v = item?.__v
+                                val uuId = item.UUID
+                                val cAt = item.createdAt
+                                val uAt = item.updatedAt
+                                val v = item.__v
 
-                                manager.verifySensor(template!!)
+                                manager.verifySensor(template)
 
                                 runOnUiThread {
                                     txtUpdate.text = it.message
                                 }
                                 Log.i(TAG, "biometricId:: $_id")
-                                Toast.makeText(this@ConfirmDetailsActivity, it.message, Toast.LENGTH_SHORT).show()
+//                                Toast.makeText(this@ConfirmDetailsActivity, it.message, Toast.LENGTH_SHORT).show()
                             }
                         }.subscribe()
                 )
+            }
+
+            override fun sendBioID() {
+
+                val data = hashMapOf(
+                    "biometricId" to _id,
+                    "action" to "ATTENDANCE"
+                )
+
+                disposable.add(
+                    service.sendBiometricId(data = data)
+                        .observeOn(AndroidSchedulers.mainThread())
+                        .onErrorReturn {
+                            it.printStackTrace()
+                            when (it) {
+                                is HttpException -> {
+                                    val message = JSONObject(it.response().errorBody()?.string()).getString("message")
+
+                                    Log.i(TAG, "Message from the server ===== $message")
+
+                                    ApiService.RecordResponse(
+                                        success = false,
+                                        message = message
+                                    )
+                                }
+                                is ConnectException -> {
+                                    ApiService.RecordResponse(
+                                        success = false,
+                                        message = "No internet connection"
+                                    )
+                                }
+                                else -> {
+
+                                    ApiService.RecordResponse(
+                                        success = false,
+                                        message = "Unknown error"
+                                    )
+
+                                }
+                            }
+                        }
+                        .doOnSuccess {
+                            if (!it.success) {
+                                txtUpdate.text = it.message
+                            } else {
+                                manager.writeToSensor(false)
+                                txtUpdate.text = it.message
+                            }
+                        }
+                        .subscribe()
+                )
+
             }
         }
     }

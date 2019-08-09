@@ -85,16 +85,17 @@ class EnrollDetailsActivity : AppCompatActivity() {
                                 }
                             }
 
-                        }.doOnSuccess {
+                        }
+                        .doOnSuccess {
                             if (!it.success) {
 
-                            } else {
+                            }
+                            else {
                                 manager.writeToSensor(false)
+                                    txtEnrollUpdate.text = it.message
                             }
-                            runOnUiThread {
-                                txtEnrollUpdate.text = it.message
-                            }
-                            Toast.makeText(this@EnrollDetailsActivity, it.message, Toast.LENGTH_SHORT).show()
+
+//                            Toast.makeText(this@EnrollDetailsActivity, it.message, Toast.LENGTH_SHORT).show()
                         }.subscribe()
                 )
             }

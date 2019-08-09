@@ -14,15 +14,20 @@ import java.util.concurrent.TimeUnit
 interface ApiService {
 
 
-    @POST("enroll")
+    @POST("biometrics/enroll")
     fun uploadFingerprint(
         @Body data: HashMap<String, String>
     ): Single<Response>
 
-    @GET("identify/{UUID}")
+    @GET("biometrics/identify/{UUID}")
     fun verifyFingerPrint(
         @Path("UUID") UUID: String
     ): Single<VerifyResponse>
+
+    @POST("activity/record")
+    fun sendBiometricId(
+        @Body data: HashMap<String, String>
+    ): Single<RecordResponse>
 
     companion object {
 
@@ -40,7 +45,7 @@ interface ApiService {
         fun provideRetrofit(): Retrofit {
             return Retrofit.Builder().apply {
                 client(provideOkhttp())
-                baseUrl("http://192.168.1.90:8081/v1/biometrics/")
+                baseUrl("http://192.168.1.90:8081/v1/")
                 addCallAdapterFactory(RxJava2CallAdapterFactory.createWithScheduler(Schedulers.io()))
                 addConverterFactory(GsonConverterFactory.create())
             }.build()
@@ -66,5 +71,12 @@ interface ApiService {
         val createdAt: String,
         val updatedAt: String,
         val __v: Int
+    )
+
+    data class RecordResponse(
+        val success: Boolean,
+        val message: String?,
+        val biometricId: String? = null,
+        val action: String? = null
     )
 }

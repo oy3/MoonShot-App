@@ -37,7 +37,7 @@ class BLEManager(private val context: Context) {
             Log.i(TAG, "Connection successful ====== ${newState == BluetoothProfile.STATE_CONNECTED}")
 
             if (status == BluetoothGatt.GATT_FAILURE) {
-               managerCallback.onConnectionDisconnected()
+                managerCallback.onConnectionDisconnected()
                 disconnectGattServer()
                 return
 
@@ -226,6 +226,7 @@ class BLEManager(private val context: Context) {
                     val image = R.drawable.done
                     managerCallback.scannerImage(image)
                     managerCallback.toastScannerMessage("VERIFY SUCCESS")
+                    managerCallback.sendBioID()
                     writeToSensor(false)
                 }
 
@@ -235,8 +236,6 @@ class BLEManager(private val context: Context) {
                     managerCallback.toastScannerMessage("VERIFY ERROR")
                     writeToSensor(false)
                 }
-
-
 
 
                 hasGottenCardUUID -> {
@@ -342,8 +341,6 @@ class BLEManager(private val context: Context) {
     }
 
 
-
-
     fun verifySensor(template: String) {
 
         val raw = template.decodeHex().toByteArray()
@@ -381,12 +378,12 @@ class BLEManager(private val context: Context) {
     abstract class BluetoothManagerCallback {
         abstract fun toastScannerMessage(message: String)
         abstract fun scannerImage(img: Int)
-        open fun writeFile(data: ByteArray?) {}
         open fun fingerPrintScanCompleted(hexData: String, uuid: String) {}
         open fun fingerPrintScanFailed(errorMessage: String) {}
         open fun onConnected(device: BluetoothDevice) {}
         open fun onConnectionDisconnected() {}
         open fun cardScanCompleted(uuid: String) {}
+        open fun sendBioID() {}
     }
 
 }
