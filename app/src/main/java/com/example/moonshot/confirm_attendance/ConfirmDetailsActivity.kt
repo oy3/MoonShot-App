@@ -6,7 +6,6 @@ import android.support.v7.app.AppCompatActivity
 import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
-import android.widget.Toast
 import com.example.moonshot.R
 import com.example.moonshot.data.ApiService
 import com.example.moonshot.manager.BLEManager
@@ -113,11 +112,8 @@ class ConfirmDetailsActivity : AppCompatActivity() {
 
                                 manager.verifySensor(template)
 
-                                runOnUiThread {
-                                    txtUpdate.text = it.message
-                                }
+                                txtUpdate.text = it.message
                                 Log.i(TAG, "biometricId:: $_id")
-//                                Toast.makeText(this@ConfirmDetailsActivity, it.message, Toast.LENGTH_SHORT).show()
                             }
                         }.subscribe()
                 )
@@ -189,7 +185,6 @@ class ConfirmDetailsActivity : AppCompatActivity() {
         supportActionBar?.title = dName
 
         confirmBtn.setOnClickListener {
-            //manager.enableVerify()
             manager.writeToService(bytesToBeWritten = "READ_CARD".toByteArray(Charsets.UTF_8))
         }
     }

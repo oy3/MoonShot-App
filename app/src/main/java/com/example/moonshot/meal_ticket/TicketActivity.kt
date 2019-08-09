@@ -25,6 +25,7 @@ import android.view.View
 import android.widget.Toast
 import com.example.moonshot.BLEAdapter
 import com.example.moonshot.R
+import com.example.moonshot.confirm_attendance.ConfirmDetailsActivity
 import com.example.moonshot.meal_ticket.TicketDetailsActivity.Companion.EXTRA_ID
 import com.example.moonshot.utils.BluetoothConstants
 import com.example.moonshot.utils.MoonshotApplication
@@ -55,15 +56,20 @@ class TicketActivity : AppCompatActivity(), BLEAdapter.OnDeviceClickListener {
         Thread(Runnable {
             try {
                 Thread.sleep(2500)
+
+
+                val intent = Intent(this, TicketDetailsActivity::class.java)
+                intent.putExtra(EXTRA_ID, device)
+                startActivity(intent)
+
+
             } catch (e: Exception) {
                 e.printStackTrace()
             }
             progressDialog.dismiss()
         }).start()
 
-        val intent = Intent(this, TicketDetailsActivity::class.java)
-        intent.putExtra(EXTRA_ID, device)
-        startActivity(intent)
+
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -71,14 +77,7 @@ class TicketActivity : AppCompatActivity(), BLEAdapter.OnDeviceClickListener {
         setContentView(R.layout.activity_device_list)
         Log.i(TAG, "onCreate called")
 
-//        val toolbar = findViewById<Toolbar>(R.id.toolbar)
-//        setSupportActionBar(toolbar)
-//        supportActionBar?.setDisplayShowTitleEnabled(false)
-//        supportActionBar?.setDisplayHomeAsUpEnabled(true)
-
-
         supportActionBar?.title = getString(R.string.meal_ticket)
-//        toolbar_title.text = getString(R.string.meal_ticket)
 
         mSwipeRefreshLayout = findViewById(R.id.pullToRefresh)
         recyclerView = findViewById(R.id.recyclerView)
@@ -153,6 +152,7 @@ class TicketActivity : AppCompatActivity(), BLEAdapter.OnDeviceClickListener {
             errorBt.visibility = View.GONE
             btSwitch.isChecked = true
         } else {
+            stopScan()
             errorBt.visibility = View.VISIBLE
             btSwitch.isChecked = false
             val enableBtIntent = Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE)
@@ -168,10 +168,11 @@ class TicketActivity : AppCompatActivity(), BLEAdapter.OnDeviceClickListener {
     }
 
     private fun btOff() {
+        stopScan()
         mBTAdapter.disable() // turn off
         Toast.makeText(applicationContext, "Bluetooth turned Off", Toast.LENGTH_SHORT).show()
-        btRequired()
     }
+
 
     private fun scanLeDevice(enable: Boolean) {
         Log.i(TAG, "Started scan")

@@ -158,7 +158,6 @@ class ConfirmActivity : AppCompatActivity(), BLEAdapter.OnDeviceClickListener {
             if (ContextCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_ADMIN)
                 != PackageManager.PERMISSION_GRANTED
             ) {
-                Toast.makeText(applicationContext, "Noooo", Toast.LENGTH_SHORT).show()
                 // Permission is not granted
               finish()
             }
