@@ -95,7 +95,6 @@ class EnrollDetailsActivity : AppCompatActivity() {
                                     txtEnrollUpdate.text = it.message
                             }
 
-//                            Toast.makeText(this@EnrollDetailsActivity, it.message, Toast.LENGTH_SHORT).show()
                         }.subscribe()
                 )
             }

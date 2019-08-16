@@ -1,11 +1,16 @@
 package com.example.moonshot.meal_ticket
 
 import android.bluetooth.BluetoothDevice
+import android.graphics.Color
+import android.graphics.drawable.ColorDrawable
 import android.os.Bundle
+import android.os.Handler
+import android.support.v7.app.AlertDialog
 import android.support.v7.app.AppCompatActivity
 import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
+import android.view.Window
 import com.example.moonshot.R
 import com.example.moonshot.data.ApiService
 import com.example.moonshot.manager.BLEManager
@@ -33,9 +38,23 @@ class TicketDetailsActivity : AppCompatActivity() {
 
     private val disposable = CompositeDisposable()
 
+    private lateinit var dialog: AlertDialog
+
 
     private val bluetoothManagerCallback by lazy {
         object : BLEManager.BluetoothManagerCallback() {
+            override fun startLoading() {
+                runOnUiThread {
+                    showLoadingDialog()
+                }
+            }
+
+            override fun stopLoading() {
+                runOnUiThread {
+                    dismissLoadingDialog()
+                }
+            }
+
             override fun onConnectionDisconnected() {
                 finish()
             }
@@ -67,7 +86,6 @@ class TicketDetailsActivity : AppCompatActivity() {
                                     val message = JSONObject(it.response().errorBody()?.string()).getString("message")
 
                                     Log.i(TAG, "Message from the server ===== $message")
-//                                    Toast.makeText(this@ConfirmDetailsActivity, message, Toast.LENGTH_LONG).show()
 
                                     ApiService.VerifyResponse(
                                         success = false,
@@ -111,9 +129,9 @@ class TicketDetailsActivity : AppCompatActivity() {
                                 val uAt = item.updatedAt
                                 val v = item.__v
 
-                                manager.verifySensor(template)
+                                manager.verifySensor(template, Handler())
 
-                                    txtVerifyUpdate.text = it.message
+                                txtVerifyUpdate.text = it.message
                                 Log.i(TAG, "biometricId:: $_id")
                             }
                         }.subscribe()
@@ -189,6 +207,25 @@ class TicketDetailsActivity : AppCompatActivity() {
         verifyBtn.setOnClickListener {
             manager.writeToService(bytesToBeWritten = "READ_CARD".toByteArray(Charsets.UTF_8))
         }
+        createDialog()
+    }
+
+    private fun createDialog() {
+        val builder = AlertDialog.Builder(this)
+        builder.setView(R.layout.layout_loading)
+        builder.setCancelable(false)
+
+        dialog = builder.create()
+        dialog.window?.requestFeature(Window.FEATURE_NO_TITLE)
+        dialog.window?.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
+    }
+
+    fun showLoadingDialog() {
+        dialog.show()
+    }
+
+    fun dismissLoadingDialog() {
+        if (dialog.isShowing) dialog.dismiss()
     }
 
     override fun onResume() {

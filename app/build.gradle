@@ -49,4 +49,7 @@ dependencies {
     implementation "com.squareup.retrofit2:converter-gson:$factory_version"
     implementation "com.squareup.retrofit2:adapter-rxjava2:$factory_version"
     implementation "io.reactivex.rxjava2:rxandroid:2.1.0"
+
+    //Lottie
+//    implementation "com.airbnb.android:lottie:$lottieVersion"
 }

@@ -1,11 +1,17 @@
 package com.example.moonshot.confirm_attendance
 
 import android.bluetooth.BluetoothDevice
+import android.graphics.Color
+import android.graphics.drawable.ColorDrawable
 import android.os.Bundle
+import android.os.Handler
+import android.support.v7.app.AlertDialog
 import android.support.v7.app.AppCompatActivity
 import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
+import android.view.Window
+import android.widget.Toast
 import com.example.moonshot.R
 import com.example.moonshot.data.ApiService
 import com.example.moonshot.manager.BLEManager
@@ -16,6 +22,10 @@ import kotlinx.android.synthetic.main.activity_confirm.*
 import org.json.JSONObject
 import retrofit2.HttpException
 import java.net.ConnectException
+import android.os.HandlerThread
+
+
+
 
 class ConfirmDetailsActivity : AppCompatActivity() {
     val TAG = "ConfirmDetailsActivity"
@@ -31,11 +41,28 @@ class ConfirmDetailsActivity : AppCompatActivity() {
 
     private val disposable = CompositeDisposable()
 
+    private lateinit var dialog: AlertDialog
+
     lateinit var _id: String
+
 
     private val bluetoothManagerCallback by lazy {
         object : BLEManager.BluetoothManagerCallback() {
+            override fun startLoading() {
+                runOnUiThread {
+                    showLoadingDialog()
+                }
+            }
+
+            override fun stopLoading() {
+                runOnUiThread{
+                    dismissLoadingDialog()
+                }
+            }
+
             override fun onConnectionDisconnected() {
+                Toast.makeText(this@ConfirmDetailsActivity, "onConnectionDisconnected called", Toast.LENGTH_LONG).show()
+//                manager.disconnectGattServer()
                 finish()
             }
 
@@ -66,7 +93,6 @@ class ConfirmDetailsActivity : AppCompatActivity() {
                                     val message = JSONObject(it.response().errorBody()?.string()).getString("message")
 
                                     Log.i(TAG, "Message from the server ===== $message")
-//                                    Toast.makeText(this@ConfirmDetailsActivity, message, Toast.LENGTH_LONG).show()
 
                                     ApiService.VerifyResponse(
                                         success = false,
@@ -85,7 +111,7 @@ class ConfirmDetailsActivity : AppCompatActivity() {
 
                                     ApiService.VerifyResponse(
                                         success = false,
-                                        message = "Unknown error"
+                                        message = "Unknown error, check network connection"
                                     )
                                 }
                             }
@@ -110,7 +136,7 @@ class ConfirmDetailsActivity : AppCompatActivity() {
                                 val uAt = item.updatedAt
                                 val v = item.__v
 
-                                manager.verifySensor(template)
+                                manager.verifySensor(template, Handler())
 
                                 txtUpdate.text = it.message
                                 Log.i(TAG, "biometricId:: $_id")
@@ -179,6 +205,7 @@ class ConfirmDetailsActivity : AppCompatActivity() {
         manager.managerCallback = bluetoothManagerCallback
         Log.i(TAG, "onCreate called")
 
+
         val device = intent.getParcelableExtra<BluetoothDevice>(EXTRA_ID)
         val dName = device.name
 
@@ -187,6 +214,27 @@ class ConfirmDetailsActivity : AppCompatActivity() {
         confirmBtn.setOnClickListener {
             manager.writeToService(bytesToBeWritten = "READ_CARD".toByteArray(Charsets.UTF_8))
         }
+
+        createDialog()
+    }
+
+
+    private fun createDialog() {
+        val builder = AlertDialog.Builder(this)
+        builder.setView(R.layout.layout_loading)
+        builder.setCancelable(false)
+
+        dialog = builder.create()
+        dialog.window?.requestFeature(Window.FEATURE_NO_TITLE)
+        dialog.window?.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
+    }
+
+    fun showLoadingDialog() {
+        dialog.show()
+    }
+
+    fun dismissLoadingDialog() {
+        if (dialog.isShowing) dialog.dismiss()
     }
 
     override fun onResume() {
@@ -209,11 +257,11 @@ class ConfirmDetailsActivity : AppCompatActivity() {
         disposable.clear()
         manager.disconnectGattServer()
         Log.i(TAG, "onDestroy called")
+        dismissLoadingDialog()
     }
 
     override fun onBackPressed() {
         manager.disconnectGattServer()
-        finish()
     }
 
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
@@ -231,5 +279,6 @@ class ConfirmDetailsActivity : AppCompatActivity() {
         }
         return super.onOptionsItemSelected(item)
     }
+
 
 }

@@ -6,6 +6,7 @@ import android.support.v7.widget.RecyclerView
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import com.example.moonshot.utils.ctx
 import kotlinx.android.synthetic.main.list_item.view.*
 
 class BLEAdapter(private val context: Context, private val listener: OnDeviceClickListener) :

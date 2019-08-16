@@ -52,6 +52,8 @@ class ConfirmActivity : AppCompatActivity(), BLEAdapter.OnDeviceClickListener {
         progressDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER) // Progress Dialog Style Spinner
         progressDialog.show() // Display Progress Dialog
         progressDialog.setCancelable(false)
+
+
         Thread(Runnable {
             try {
                 Thread.sleep(2500)

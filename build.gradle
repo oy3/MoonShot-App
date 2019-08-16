@@ -9,6 +9,7 @@ buildscript {
         logging_interceptor_version = '3.8.1'
         retrofit_version = '2.4.0'
         factory_version = '2.4.0'
+//        lottieVersion = '3.0.7'
     }
     repositories {
         google()

@@ -2,7 +2,10 @@ package com.example.moonshot.manager
 
 import android.bluetooth.*
 import android.content.Context
+import android.os.Handler
+import android.os.HandlerThread
 import android.os.Vibrator
+import android.support.annotation.UiThread
 import android.util.Log
 import com.example.moonshot.R
 import com.example.moonshot.utils.BluetoothConstants.NOTIFY_CHARACTERISTIC
@@ -16,15 +19,14 @@ import java.io.File
 
 class BLEManager(private val context: Context) {
     val TAG = "BLEManager"
+
     private var globalGatt: BluetoothGatt? = null
+
     lateinit var deviceConnected: BluetoothDevice
-    private var characteristic: BluetoothGattCharacteristic? = null
 
     private var hasGottenCardUUID = false
 
     lateinit var managerCallback: BluetoothManagerCallback
-
-    private val mainFolder: File? = null
 
     private var fingerprintBytes: String = ""
 
@@ -51,8 +53,8 @@ class BLEManager(private val context: Context) {
                 deviceConnected = device
                 Log.i(TAG, "Discovering services...")
             } else if (newState == BluetoothProfile.STATE_DISCONNECTED) {
-                managerCallback.onConnectionDisconnected()
                 Log.i(TAG, "Disconnected from ${gatt?.device?.name ?: gatt?.device?.address}")
+                managerCallback.onConnectionDisconnected()
                 disconnectGattServer()
             }
         }
@@ -218,11 +220,13 @@ class BLEManager(private val context: Context) {
                 stringValue.contains("##1011") -> {
                     val image = R.drawable.error
                     managerCallback.scannerImage(image)
-                    managerCallback.toastScannerMessage("Invalid parameter")
+                    managerCallback.toastScannerMessage("Invalid parameter, try again")
                     writeToSensor(false)
                 }
 
                 stringValue.contains("VERIFY SUCCESS") -> {
+                    val vibratorService = context.getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
+                    vibratorService.vibrate(500)
                     val image = R.drawable.done
                     managerCallback.scannerImage(image)
                     managerCallback.toastScannerMessage("VERIFY SUCCESS")
@@ -234,6 +238,13 @@ class BLEManager(private val context: Context) {
                     val image = R.drawable.error
                     managerCallback.scannerImage(image)
                     managerCallback.toastScannerMessage("VERIFY ERROR")
+                    writeToSensor(false)
+                }
+
+                stringValue.contains("Unknown error") -> {
+                    val image = R.drawable.error
+                    managerCallback.scannerImage(image)
+                    managerCallback.toastScannerMessage("UNKNOWN ERROR, CHECK NETWORK CONNECTION")
                     writeToSensor(false)
                 }
 
@@ -341,38 +352,45 @@ class BLEManager(private val context: Context) {
     }
 
 
-    fun verifySensor(template: String) {
+    fun verifySensor(template: String, uiThread: Handler) {
+        //Load progress bar
+        uiThread.post {
+            managerCallback.startLoading()
 
-        val raw = template.decodeHex().toByteArray()
 
-        var index = 0
-        while (index < raw.size) {
+            val handlerThread = HandlerThread("MyClass.Handler")
+            handlerThread.start()
+            val backgroundHandler = Handler(handlerThread.looper)
 
-            val chunkSize: IntRange = if (index + 19 > raw.lastIndex) {
-                IntRange(index, raw.lastIndex)
-            } else {
-                IntRange(index, index + 19)
+            backgroundHandler.post {
+                val raw = template.decodeHex().toByteArray()
+
+
+                var index = 0
+                while (index < raw.size) {
+                    val chunkSize: IntRange = if (index + 19 > raw.lastIndex) {
+                        IntRange(index, raw.lastIndex)
+                    } else {
+                        IntRange(index, index + 19)
+                    }
+
+                    val chunkList = raw.slice(chunkSize)
+
+                    val chunk = chunkList.toByteArray()
+                    Thread.sleep(350)
+                    index += 20
+
+                    writeToService(chunk)
+                }
+                Thread.sleep(350)
+                writeToService("VERIFY".toByteArray())
+
+                managerCallback.stopLoading()
             }
-
-            val chunkList = raw.slice(chunkSize)
-
-            val chunk = chunkList.toByteArray()
-            Thread.sleep(350)
-            index += 20
-
-            writeToService(chunk)
+            //Stop progress bar
         }
 
-        Thread.sleep(350)
-        writeToService("VERIFY".toByteArray())
-    }
 
-    interface Enroll {
-        fun writeSuccessful()
-    }
-
-    interface Verify {
-        fun verificationSuccessful()
     }
 
     abstract class BluetoothManagerCallback {
@@ -384,6 +402,9 @@ class BLEManager(private val context: Context) {
         open fun onConnectionDisconnected() {}
         open fun cardScanCompleted(uuid: String) {}
         open fun sendBioID() {}
+
+        open fun startLoading() {}
+        open fun stopLoading() {}
     }
 
 }

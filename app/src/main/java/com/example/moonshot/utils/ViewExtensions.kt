@@ -1,4 +1,4 @@
-package com.example.moonshot
+package com.example.moonshot.utils
 
 import android.content.Context
 import android.view.View
