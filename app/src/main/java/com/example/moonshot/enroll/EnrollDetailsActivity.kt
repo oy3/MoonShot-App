@@ -14,6 +14,7 @@ import com.example.moonshot.manager.BLEManager
 import com.example.moonshot.utils.MoonshotApplication
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
+import kotlinx.android.synthetic.main.activity_confirm.*
 import kotlinx.android.synthetic.main.activity_enroll.*
 import kotlinx.android.synthetic.main.toolbar.*
 import org.json.JSONObject
@@ -36,6 +37,11 @@ class EnrollDetailsActivity : AppCompatActivity() {
 
     private val bluetoothManagerCallback by lazy {
         object : BLEManager.BluetoothManagerCallback() {
+            override fun onConnectionDisconnected(device: BluetoothDevice) {
+                Toast.makeText(this@EnrollDetailsActivity, "Disconnected from ${device.name}", Toast.LENGTH_LONG).show()
+                finish()
+            }
+
             override fun scannerImage(img: Int) {
                 runOnUiThread {
                     imgEnrollImg.setImageResource(img)
@@ -67,9 +73,9 @@ class EnrollDetailsActivity : AppCompatActivity() {
                                     Log.i(TAG, "Message from the server ===== $message")
 
                                     ApiService.Response(
-                                        false,
-                                        message,
-                                        null
+                                        success = false,
+                                        message = message,
+                                        error = null
                                     )
                                 }
                                 is ConnectException -> {
@@ -88,11 +94,10 @@ class EnrollDetailsActivity : AppCompatActivity() {
                         }
                         .doOnSuccess {
                             if (!it.success) {
-
-                            }
-                            else {
+                                txtEnrollUpdate.text = it.message
+                            } else {
                                 manager.writeToSensor(false)
-                                    txtEnrollUpdate.text = it.message
+                                txtEnrollUpdate.text = it.message
                             }
 
                         }.subscribe()

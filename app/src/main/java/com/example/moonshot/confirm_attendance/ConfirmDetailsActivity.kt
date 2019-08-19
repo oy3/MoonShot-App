@@ -19,12 +19,10 @@ import com.example.moonshot.utils.MoonshotApplication
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
 import kotlinx.android.synthetic.main.activity_confirm.*
+import kotlinx.android.synthetic.main.layout_loading.view.*
 import org.json.JSONObject
 import retrofit2.HttpException
 import java.net.ConnectException
-import android.os.HandlerThread
-
-
 
 
 class ConfirmDetailsActivity : AppCompatActivity() {
@@ -48,6 +46,7 @@ class ConfirmDetailsActivity : AppCompatActivity() {
 
     private val bluetoothManagerCallback by lazy {
         object : BLEManager.BluetoothManagerCallback() {
+
             override fun startLoading() {
                 runOnUiThread {
                     showLoadingDialog()
@@ -55,14 +54,13 @@ class ConfirmDetailsActivity : AppCompatActivity() {
             }
 
             override fun stopLoading() {
-                runOnUiThread{
+                runOnUiThread {
                     dismissLoadingDialog()
                 }
             }
 
-            override fun onConnectionDisconnected() {
-                Toast.makeText(this@ConfirmDetailsActivity, "onConnectionDisconnected called", Toast.LENGTH_LONG).show()
-//                manager.disconnectGattServer()
+            override fun onConnectionDisconnected(device: BluetoothDevice) {
+                Toast.makeText(this@ConfirmDetailsActivity, "Disconnected from ${device.name}", Toast.LENGTH_LONG).show()
                 finish()
             }
 
@@ -96,7 +94,7 @@ class ConfirmDetailsActivity : AppCompatActivity() {
 
                                     ApiService.VerifyResponse(
                                         success = false,
-                                        message = "HttpException"
+                                        message = message
                                     )
                                 }
                                 is ConnectException -> {
@@ -221,8 +219,11 @@ class ConfirmDetailsActivity : AppCompatActivity() {
 
     private fun createDialog() {
         val builder = AlertDialog.Builder(this)
-        builder.setView(R.layout.layout_loading)
+        val view = layoutInflater.inflate(R.layout.layout_loading, null)
+        builder.setView(view)
         builder.setCancelable(false)
+
+        view.txtMessage.text = getString(R.string.scanning_card)
 
         dialog = builder.create()
         dialog.window?.requestFeature(Window.FEATURE_NO_TITLE)
@@ -266,7 +267,6 @@ class ConfirmDetailsActivity : AppCompatActivity() {
 
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
         menuInflater.inflate(R.menu.main_menu, menu)
-
         return super.onCreateOptionsMenu(menu)
     }
 

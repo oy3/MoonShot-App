@@ -39,7 +39,6 @@ class BLEManager(private val context: Context) {
             Log.i(TAG, "Connection successful ====== ${newState == BluetoothProfile.STATE_CONNECTED}")
 
             if (status == BluetoothGatt.GATT_FAILURE) {
-                managerCallback.onConnectionDisconnected()
                 disconnectGattServer()
                 return
 
@@ -51,10 +50,11 @@ class BLEManager(private val context: Context) {
             if (newState == BluetoothProfile.STATE_CONNECTED) {
                 gatt?.discoverServices()
                 deviceConnected = device
+
                 Log.i(TAG, "Discovering services...")
+
             } else if (newState == BluetoothProfile.STATE_DISCONNECTED) {
                 Log.i(TAG, "Disconnected from ${gatt?.device?.name ?: gatt?.device?.address}")
-                managerCallback.onConnectionDisconnected()
                 disconnectGattServer()
             }
         }
@@ -119,12 +119,19 @@ class BLEManager(private val context: Context) {
                 }
                 stringValue.contains("PROCESS COMPLETE") -> {
 
-                    val vibratorService = context.getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
-                    vibratorService.vibrate(500)
+                    vibrate()
                     managerCallback.toastScannerMessage(stringValue)
                     managerCallback.fingerPrintScanCompleted(fingerprintBytes, uuid)
                     val image = R.drawable.done
                     managerCallback.scannerImage(image)
+                    writeToSensor(false)
+                }
+                stringValue.contains("VERIFY SUCCESS") -> {
+                    vibrate()
+                    val image = R.drawable.done
+                    managerCallback.scannerImage(image)
+                    managerCallback.toastScannerMessage("VERIFY SUCCESS")
+                    managerCallback.sendBioID()
                     writeToSensor(false)
                 }
                 stringValue.contains("ENROLMENT FAILURE") -> {
@@ -224,16 +231,6 @@ class BLEManager(private val context: Context) {
                     writeToSensor(false)
                 }
 
-                stringValue.contains("VERIFY SUCCESS") -> {
-                    val vibratorService = context.getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
-                    vibratorService.vibrate(500)
-                    val image = R.drawable.done
-                    managerCallback.scannerImage(image)
-                    managerCallback.toastScannerMessage("VERIFY SUCCESS")
-                    managerCallback.sendBioID()
-                    writeToSensor(false)
-                }
-
                 stringValue.contains("ERROR VERIFY CHECK #") -> {
                     val image = R.drawable.error
                     managerCallback.scannerImage(image)
@@ -297,11 +294,12 @@ class BLEManager(private val context: Context) {
     }
 
     fun disconnectGattServer() {
-        Log.i(TAG, "Disconnected from globalGatt server")
+        managerCallback.onConnectionDisconnected(deviceConnected)
         globalGatt?.let {
             it.disconnect()
             it.close()
         }
+        Log.i(TAG, "Disconnected from globalGatt server")
     }
 
     fun enableSensor() {
@@ -393,13 +391,18 @@ class BLEManager(private val context: Context) {
 
     }
 
+    fun vibrate() {
+        val vibratorService = context.getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
+        vibratorService.vibrate(500)
+    }
+
     abstract class BluetoothManagerCallback {
         abstract fun toastScannerMessage(message: String)
         abstract fun scannerImage(img: Int)
         open fun fingerPrintScanCompleted(hexData: String, uuid: String) {}
         open fun fingerPrintScanFailed(errorMessage: String) {}
         open fun onConnected(device: BluetoothDevice) {}
-        open fun onConnectionDisconnected() {}
+        open fun onConnectionDisconnected(device: BluetoothDevice) {}
         open fun cardScanCompleted(uuid: String) {}
         open fun sendBioID() {}
 

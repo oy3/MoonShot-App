@@ -26,12 +26,13 @@ import android.widget.Toast
 import com.example.moonshot.BLEAdapter
 import com.example.moonshot.R
 import com.example.moonshot.enroll.EnrollDetailsActivity.Companion.EXTRA_ID
+import com.example.moonshot.utils.BaseActivity
 import com.example.moonshot.utils.BluetoothConstants
 import com.example.moonshot.utils.MoonshotApplication
 import kotlinx.android.synthetic.main.activity_device_list.*
 import kotlinx.android.synthetic.main.toolbar.*
 
-class EnrollActivity : AppCompatActivity(), BLEAdapter.OnDeviceClickListener {
+class EnrollActivity : BaseActivity(), BLEAdapter.OnDeviceClickListener {
     val TAG = "EnrollActivity"
     private lateinit var adapter: BLEAdapter
     private lateinit var recyclerView: RecyclerView
@@ -44,13 +45,8 @@ class EnrollActivity : AppCompatActivity(), BLEAdapter.OnDeviceClickListener {
         stopScan()
         manager.connectGattServer(device)
         Log.i(TAG, "Connecting to -> " + device.name + " :: " + device.address)
+        loadingDialog(device)
 
-        val progressDialog = ProgressDialog(this@EnrollActivity)
-        progressDialog.setMessage("Connecting to " + device.name) // Setting Message
-        progressDialog.setTitle("Please wait") // Setting Title
-        progressDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER) // Progress Dialog Style Spinner
-        progressDialog.show() // Display Progress Dialog
-        progressDialog.setCancelable(false)
         Thread(Runnable {
             try {
                 Thread.sleep(2500)
@@ -60,7 +56,7 @@ class EnrollActivity : AppCompatActivity(), BLEAdapter.OnDeviceClickListener {
             } catch (e: Exception) {
                 e.printStackTrace()
             }
-            progressDialog.dismiss()
+            dialog.dismiss()
         }).start()
 
 
@@ -72,15 +68,9 @@ class EnrollActivity : AppCompatActivity(), BLEAdapter.OnDeviceClickListener {
         setContentView(R.layout.activity_device_list)
         Log.i(TAG, "onCreate called")
 
-//        val toolbar = findViewById<Toolbar>(R.id.toolbar)
-//        setSupportActionBar(toolbar)
-//        supportActionBar?.setDisplayShowTitleEnabled(false)
-//        supportActionBar?.setDisplayHomeAsUpEnabled(true)
-
 
         supportActionBar?.title = getString(R.string.enroll_finger_print)
 
-//        toolbar_title.text = getString(R.string.enroll_finger_print)
 
         mSwipeRefreshLayout = findViewById(R.id.pullToRefresh)
         recyclerView = findViewById(R.id.recyclerView)
@@ -219,103 +209,5 @@ class EnrollActivity : AppCompatActivity(), BLEAdapter.OnDeviceClickListener {
 
         }
 
-    @TargetApi(Build.VERSION_CODES.M)
-    private fun checkMarshMallow() {
-        val permissionsNeeded = ArrayList<String>()
-
-        val permissionsList = ArrayList<String>()
-        if (!addPermission(permissionsList, Manifest.permission.ACCESS_COARSE_LOCATION))
-            permissionsNeeded.add("Show Location")
-
-        if (permissionsList.size > 0) {
-            if (permissionsNeeded.size > 0) {
-
-                // Need Rationale
-                var message = "App need access to " + permissionsNeeded[0]
-
-                for (i in 1 until permissionsNeeded.size)
-                    message = message + ", " + permissionsNeeded[i]
-
-                showMessageOKCancel(message,
-                    DialogInterface.OnClickListener { dialog, which ->
-                        BluetoothConstants.REQUEST_CODE_ASK_MULTIPLE_PERMISSIONS
-                        requestPermissions(
-                            permissionsList.toTypedArray(),
-                            BluetoothConstants.REQUEST_CODE_ASK_MULTIPLE_PERMISSIONS
-                        )
-                    })
-                return
-            }
-            requestPermissions(
-                permissionsList.toTypedArray(),
-                BluetoothConstants.REQUEST_CODE_ASK_MULTIPLE_PERMISSIONS
-            )
-            return
-        }
-
-        Toast.makeText(
-            this@EnrollActivity,
-            "No new Permission Required- Launching App .You are Awesome!!",
-            Toast.LENGTH_SHORT
-        )
-            .show()
-    }
-
-    private fun showMessageOKCancel(message: String, okListener: DialogInterface.OnClickListener) {
-        AlertDialog.Builder(this@EnrollActivity)
-            .setMessage(message)
-            .setPositiveButton("OK", okListener)
-            .setNegativeButton("Cancel", null)
-            .create()
-            .show()
-    }
-
-
-    @TargetApi(Build.VERSION_CODES.M)
-    private fun addPermission(permissionsList: MutableList<String>, permission: String): Boolean {
-
-        if (checkSelfPermission(permission) != PackageManager.PERMISSION_GRANTED) {
-            permissionsList.add(permission)
-            // Check for Rationale Option
-            if (!shouldShowRequestPermissionRationale(permission))
-                return false
-        }
-        return true
-    }
-
-    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<String>, grantResults: IntArray) {
-        when (requestCode) {
-            BluetoothConstants.REQUEST_CODE_ASK_MULTIPLE_PERMISSIONS -> {
-                val perms = HashMap<String, Int>()
-                // Initial
-                perms[Manifest.permission.ACCESS_COARSE_LOCATION] = PackageManager.PERMISSION_GRANTED
-
-
-                // Fill with results
-                for (i in permissions.indices)
-                    perms[permissions[i]] = grantResults[i]
-
-                // Check for ACCESS_FINE_LOCATION
-                if (perms[Manifest.permission.ACCESS_COARSE_LOCATION] == PackageManager.PERMISSION_GRANTED) {
-                    // All Permissions Granted
-
-                    // Permission Denied
-                    Toast.makeText(this@EnrollActivity, "All Permission GRANTED !! Thank You :)", Toast.LENGTH_SHORT)
-                        .show()
-
-
-                } else {
-                    // Permission Denied
-                    Toast.makeText(
-                        this@EnrollActivity,
-                        "One or More Permissions are DENIED Exiting App :(",
-                        Toast.LENGTH_SHORT
-                    ).show()
-                    finish()
-                }
-            }
-            else -> super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        }
-    }
 
 }

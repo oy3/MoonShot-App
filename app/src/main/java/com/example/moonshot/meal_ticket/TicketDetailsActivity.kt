@@ -11,6 +11,7 @@ import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import android.view.Window
+import android.widget.Toast
 import com.example.moonshot.R
 import com.example.moonshot.data.ApiService
 import com.example.moonshot.manager.BLEManager
@@ -18,6 +19,7 @@ import com.example.moonshot.utils.MoonshotApplication
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
 import kotlinx.android.synthetic.main.activity_ticket.*
+import kotlinx.android.synthetic.main.layout_loading.view.*
 import org.json.JSONObject
 import retrofit2.HttpException
 import java.net.ConnectException
@@ -55,7 +57,8 @@ class TicketDetailsActivity : AppCompatActivity() {
                 }
             }
 
-            override fun onConnectionDisconnected() {
+            override fun onConnectionDisconnected(device: BluetoothDevice) {
+                Toast.makeText(this@TicketDetailsActivity, "Disconnected from ${device.name}", Toast.LENGTH_LONG).show()
                 finish()
             }
 
@@ -212,8 +215,11 @@ class TicketDetailsActivity : AppCompatActivity() {
 
     private fun createDialog() {
         val builder = AlertDialog.Builder(this)
-        builder.setView(R.layout.layout_loading)
+        val view = layoutInflater.inflate(R.layout.layout_loading, null)
+        builder.setView(view)
         builder.setCancelable(false)
+
+        view.txtMessage.text = "Please wait..."
 
         dialog = builder.create()
         dialog.window?.requestFeature(Window.FEATURE_NO_TITLE)

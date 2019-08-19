@@ -12,5 +12,6 @@
     <string name="enroll_finger_print">Enroll Finger Print</string>
     <string name="confirm_friday_attendance">Confirm Friday Attendance</string>
     <string name="setup_smart_watch">Setup Smart Watch</string>
+    <string name="scanning_card">Scanning card…</string>
 
 </resources>

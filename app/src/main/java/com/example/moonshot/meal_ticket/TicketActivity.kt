@@ -27,12 +27,13 @@ import com.example.moonshot.BLEAdapter
 import com.example.moonshot.R
 import com.example.moonshot.confirm_attendance.ConfirmDetailsActivity
 import com.example.moonshot.meal_ticket.TicketDetailsActivity.Companion.EXTRA_ID
+import com.example.moonshot.utils.BaseActivity
 import com.example.moonshot.utils.BluetoothConstants
 import com.example.moonshot.utils.MoonshotApplication
 import kotlinx.android.synthetic.main.activity_device_list.*
 import kotlinx.android.synthetic.main.toolbar.*
 
-class TicketActivity : AppCompatActivity(), BLEAdapter.OnDeviceClickListener {
+class TicketActivity : BaseActivity(), BLEAdapter.OnDeviceClickListener {
     private val TAG = "TicketActivity"
     private lateinit var adapter: BLEAdapter
     private lateinit var recyclerView: RecyclerView
@@ -47,17 +48,10 @@ class TicketActivity : AppCompatActivity(), BLEAdapter.OnDeviceClickListener {
         manager.connectGattServer(device)
         Log.i(TAG, "Connecting to -> " + device.name + " :: " + device.address)
 
-        val progressDialog = ProgressDialog(this@TicketActivity)
-        progressDialog.setMessage("Connecting to " + device.name) // Setting Message
-        progressDialog.setTitle("Please wait") // Setting Title
-        progressDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER) // Progress Dialog Style Spinner
-        progressDialog.show() // Display Progress Dialog
-        progressDialog.setCancelable(false)
+        loadingDialog(device)
         Thread(Runnable {
             try {
                 Thread.sleep(2500)
-
-
                 val intent = Intent(this, TicketDetailsActivity::class.java)
                 intent.putExtra(EXTRA_ID, device)
                 startActivity(intent)
@@ -66,7 +60,7 @@ class TicketActivity : AppCompatActivity(), BLEAdapter.OnDeviceClickListener {
             } catch (e: Exception) {
                 e.printStackTrace()
             }
-            progressDialog.dismiss()
+            dialog.dismiss()
         }).start()
 
 
@@ -216,103 +210,4 @@ class TicketActivity : AppCompatActivity(), BLEAdapter.OnDeviceClickListener {
             }
 
         }
-
-    @TargetApi(Build.VERSION_CODES.M)
-    private fun checkMarshMallow() {
-        val permissionsNeeded = ArrayList<String>()
-
-        val permissionsList = ArrayList<String>()
-        if (!addPermission(permissionsList, Manifest.permission.ACCESS_COARSE_LOCATION))
-            permissionsNeeded.add("Show Location")
-
-        if (permissionsList.size > 0) {
-            if (permissionsNeeded.size > 0) {
-
-                // Need Rationale
-                var message = "App need access to " + permissionsNeeded[0]
-
-                for (i in 1 until permissionsNeeded.size)
-                    message = message + ", " + permissionsNeeded[i]
-
-                showMessageOKCancel(message,
-                    DialogInterface.OnClickListener { dialog, which ->
-                        BluetoothConstants.REQUEST_CODE_ASK_MULTIPLE_PERMISSIONS
-                        requestPermissions(
-                            permissionsList.toTypedArray(),
-                            BluetoothConstants.REQUEST_CODE_ASK_MULTIPLE_PERMISSIONS
-                        )
-                    })
-                return
-            }
-            requestPermissions(
-                permissionsList.toTypedArray(),
-                BluetoothConstants.REQUEST_CODE_ASK_MULTIPLE_PERMISSIONS
-            )
-            return
-        }
-
-        Toast.makeText(
-            this@TicketActivity,
-            "No new Permission Required- Launching App .You are Awesome!!",
-            Toast.LENGTH_SHORT
-        )
-            .show()
-    }
-
-    private fun showMessageOKCancel(message: String, okListener: DialogInterface.OnClickListener) {
-        AlertDialog.Builder(this@TicketActivity)
-            .setMessage(message)
-            .setPositiveButton("OK", okListener)
-            .setNegativeButton("Cancel", null)
-            .create()
-            .show()
-    }
-
-
-    @TargetApi(Build.VERSION_CODES.M)
-    private fun addPermission(permissionsList: MutableList<String>, permission: String): Boolean {
-
-        if (checkSelfPermission(permission) != PackageManager.PERMISSION_GRANTED) {
-            permissionsList.add(permission)
-            // Check for Rationale Option
-            if (!shouldShowRequestPermissionRationale(permission))
-                return false
-        }
-        return true
-    }
-
-    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<String>, grantResults: IntArray) {
-        when (requestCode) {
-            BluetoothConstants.REQUEST_CODE_ASK_MULTIPLE_PERMISSIONS -> {
-                val perms = HashMap<String, Int>()
-                // Initial
-                perms[Manifest.permission.ACCESS_COARSE_LOCATION] = PackageManager.PERMISSION_GRANTED
-
-
-                // Fill with results
-                for (i in permissions.indices)
-                    perms[permissions[i]] = grantResults[i]
-
-                // Check for ACCESS_FINE_LOCATION
-                if (perms[Manifest.permission.ACCESS_COARSE_LOCATION] == PackageManager.PERMISSION_GRANTED) {
-                    // All Permissions Granted
-
-                    // Permission Denied
-                    Toast.makeText(this@TicketActivity, "All Permission GRANTED !! Thank You :)", Toast.LENGTH_SHORT)
-                        .show()
-
-
-                } else {
-                    // Permission Denied
-                    Toast.makeText(
-                        this@TicketActivity,
-                        "One or More Permissions are DENIED Exiting App :(",
-                        Toast.LENGTH_SHORT
-                    ).show()
-                    finish()
-                }
-            }
-            else -> super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        }
-    }
 }
