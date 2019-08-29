@@ -1,56 +1,40 @@
 package com.example.moonshot.confirm_attendance
 
-import android.Manifest
-import android.annotation.TargetApi
 import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothDevice
 import android.bluetooth.BluetoothManager
 import android.content.Context
-import android.content.DialogInterface
 import android.content.Intent
 import android.content.pm.PackageManager
-import android.graphics.Color
-import android.graphics.drawable.ColorDrawable
 import android.os.Build
 import android.os.Bundle
-import android.os.Handler
-import android.support.v4.content.ContextCompat
-import android.support.v4.widget.SwipeRefreshLayout
-import android.support.v7.app.AlertDialog
-import android.support.v7.app.AppCompatActivity
 import android.support.v7.widget.LinearLayoutManager
 import android.support.v7.widget.RecyclerView
 import android.util.Log
-import android.view.View
-import android.view.Window
 import android.widget.Toast
 import com.example.moonshot.BLEAdapter
 import com.example.moonshot.R
 import com.example.moonshot.confirm_attendance.ConfirmDetailsActivity.Companion.EXTRA_ID
 import com.example.moonshot.utils.BaseActivity
-import com.example.moonshot.utils.BluetoothConstants
+import com.example.moonshot.utils.BluetoothConstants.REQUEST_ENABLE_BT
 import com.example.moonshot.utils.MoonshotApplication
-import com.github.ybq.android.spinkit.style.WanderingCubes
 import kotlinx.android.synthetic.main.activity_device_list.*
-import kotlinx.android.synthetic.main.layout_loading.view.*
 
 class ConfirmActivity : BaseActivity(), BLEAdapter.OnDeviceClickListener {
 
-    private val TAG = "ConfirmActivity"
-    private lateinit var adapter: BLEAdapter
+    //    var TAG = "ConfirmActivity"
     private lateinit var recyclerView: RecyclerView
-    private lateinit var mBTAdapter: BluetoothAdapter
-    private val list = arrayListOf<BluetoothDevice>()
     private val manager by lazy { MoonshotApplication.getBleManager(this) }
-    private lateinit var mSwipeRefreshLayout: SwipeRefreshLayout
+
 
     override fun onDeviceClicked(device: BluetoothDevice) {
         stopScan()
         manager.connectGattServer(device)
         Log.i(TAG, "Connecting to -> " + device.name + " :: " + device.address)
 
-
-        loadingDialog(device)
+        val view = layoutInflater.inflate(R.layout.layout_loading, null)
+        val text = "Connecting to " + device.name
+        loadingDialog(view, text)
 
         Thread(Runnable {
             try {
@@ -70,7 +54,6 @@ class ConfirmActivity : BaseActivity(), BLEAdapter.OnDeviceClickListener {
     }
 
 
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_device_list)
@@ -87,8 +70,6 @@ class ConfirmActivity : BaseActivity(), BLEAdapter.OnDeviceClickListener {
         val mBluetoothManager: BluetoothManager = getSystemService(Context.BLUETOOTH_SERVICE) as BluetoothManager
         mBTAdapter = mBluetoothManager.adapter
 
-        btRequired()
-
         mSwipeRefreshLayout.setOnRefreshListener {
             scanLeDevice(true)
         }
@@ -101,7 +82,7 @@ class ConfirmActivity : BaseActivity(), BLEAdapter.OnDeviceClickListener {
         btSwitch.setOnCheckedChangeListener { _, isChecked ->
             if (isChecked) {
                 // The toggle is enabled
-                btRequired()
+                btOn()
             } else {
                 // The toggle is disabled
                 btOff()
@@ -113,105 +94,39 @@ class ConfirmActivity : BaseActivity(), BLEAdapter.OnDeviceClickListener {
         super.onResume()
         Log.i(TAG, "onResume called")
 
+        mBTAdapter = BluetoothAdapter.getDefaultAdapter()
+        if (!mBTAdapter.isEnabled) {
+            val enableBtIntent = Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE)
+            startActivityForResult(enableBtIntent, REQUEST_ENABLE_BT)
+
+        } else {
+            btOn()
+        }
+
+
         if (!packageManager.hasSystemFeature(PackageManager.FEATURE_BLUETOOTH_LE)) {
             Toast.makeText(this, "No BLE Support.", Toast.LENGTH_SHORT).show()
             finish()
             return
         }
-        scanLeDevice(true)
     }
 
     override fun onPause() {
         super.onPause()
         Log.i(TAG, "onPause called")
-        if (mBTAdapter.startDiscovery()) {
-            stopScan()
-        }
     }
 
     override fun onStop() {
         super.onStop()
         Log.i(TAG, "onStop called")
-        if (mBTAdapter.startDiscovery()) {
-            stopScan()
-        }
     }
 
     override fun onDestroy() {
         super.onDestroy()
         Log.i(TAG, "onDestroy called")
-        if (mBTAdapter.startDiscovery()) {
-            stopScan()
-        }
     }
 
-    private fun btRequired() {
-        mBTAdapter = BluetoothAdapter.getDefaultAdapter()
-        if (mBTAdapter.isEnabled) {
-            errorBt.visibility = View.GONE
-            btSwitch.isChecked = true
-        } else {
-            errorBt.visibility = View.VISIBLE
-            stopScan()
-            btSwitch.isChecked = false
-            val enableBtIntent = Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE)
-            startActivityForResult(enableBtIntent, BluetoothConstants.REQUEST_ENABLE_BT)
-
-            if (ContextCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_ADMIN)
-                != PackageManager.PERMISSION_GRANTED
-            ) {
-                // Permission is not granted
-                finish()
-            }
-        }
-    }
-
-    private fun btOff() {
-        stopScan()
-        mBTAdapter.disable() // turn off
-        Toast.makeText(applicationContext, "Bluetooth turned Off", Toast.LENGTH_SHORT).show()
-    }
-
-    private fun scanLeDevice(enable: Boolean) {
-        Log.i(TAG, "Started scan")
-        list.clear()
-        adapter.notifyDataSetChanged()
-        Handler().postDelayed({
-            mSwipeRefreshLayout.isRefreshing = false
-        }, 2000)
-        when (enable) {
-            true -> {
-                // Stops scanning after a pre-defined scan period.
-                Handler().postDelayed({
-                    stopScan()
-                }, BluetoothConstants.SCAN_PERIOD)
-                mBTAdapter.startLeScan(leScanCallback)
-            }
-            else -> {
-
-                stopScan()
-            }
-        }
-    }
-
-    private fun stopScan() {
-        mBTAdapter.stopLeScan(leScanCallback)
-        Log.i(TAG, "Stopped scan")
-    }
-
-    private val leScanCallback: BluetoothAdapter.LeScanCallback =
-        BluetoothAdapter.LeScanCallback { device, rssi, scanRecord ->
-            Log.i(TAG, "New BLE device:" + device.name + "@ $rssi")
 
 
-            if (device.name != null) {
-                if (!list.contains(device)) {
-                    list.add(device)
-                    adapter.bleList = list
-                    adapter.notifyDataSetChanged()
-                }
 
-            }
-
-        }
 }

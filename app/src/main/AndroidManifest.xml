@@ -25,10 +25,10 @@
     <application
             android:name=".utils.MoonshotApplication"
             android:allowBackup="true"
-            android:icon="@mipmap/ic_launcher"
+            android:icon="@mipmap/ico_launcher"
             android:label="@string/app_name"
             android:usesCleartextTraffic="true"
-            android:roundIcon="@mipmap/ic_launcher_round"
+            android:roundIcon="@mipmap/ico_launcher_round"
             android:supportsRtl="true"
             android:theme="@style/AppTheme">
         <activity android:name=".splash.SplashActivity"

@@ -8,6 +8,7 @@ import android.os.Vibrator
 import android.support.annotation.UiThread
 import android.util.Log
 import com.example.moonshot.R
+import com.example.moonshot.utils.BluetoothConstants
 import com.example.moonshot.utils.BluetoothConstants.NOTIFY_CHARACTERISTIC
 import com.example.moonshot.utils.BluetoothConstants.NOTIFY_DESCRIPTOR
 import com.example.moonshot.utils.BluetoothConstants.NOTIFY_SERVICE
@@ -15,6 +16,8 @@ import com.example.moonshot.utils.BluetoothConstants.WRITE_CHARACTERISTIC
 import com.example.moonshot.utils.BluetoothConstants.WRITE_SERVICE
 import okio.ByteString.Companion.decodeHex
 import java.io.File
+import java.lang.Exception
+import java.util.*
 
 
 class BLEManager(private val context: Context) {
@@ -26,12 +29,17 @@ class BLEManager(private val context: Context) {
 
     private var hasGottenCardUUID = false
 
-    lateinit var managerCallback: BluetoothManagerCallback
+    private lateinit var managerCallback: BluetoothManagerCallback
 
     private var fingerprintBytes: String = ""
 
     private lateinit var uuid: String
     private val fingerPrintFile by lazy { File(context.cacheDir, uuid) }
+
+    fun setCallBack(callback: BluetoothManagerCallback) {
+        managerCallback = callback
+    }
+
 
     inner class BLEGattClientCallback(private val device: BluetoothDevice) : BluetoothGattCallback() {
 
@@ -50,7 +58,6 @@ class BLEManager(private val context: Context) {
             if (newState == BluetoothProfile.STATE_CONNECTED) {
                 gatt?.discoverServices()
                 deviceConnected = device
-
                 Log.i(TAG, "Discovering services...")
 
             } else if (newState == BluetoothProfile.STATE_DISCONNECTED) {
@@ -61,6 +68,7 @@ class BLEManager(private val context: Context) {
 
         override fun onServicesDiscovered(gatt: BluetoothGatt, status: Int) {
             if (status == BluetoothGatt.GATT_SUCCESS) {
+
                 gatt.services.forEach { service ->
                     service.characteristics.forEach { characteristic ->
                         Log.i(
@@ -69,7 +77,14 @@ class BLEManager(private val context: Context) {
                         )
                     }
                 }
+                if (gatt.getService(WRITE_SERVICE) == null) {
+                    disconnectGattServer()
+                    Log.i(TAG, "${device.name} is not a fingerprint scanner.")
+//                    managerCallback.toastScannerMessage("$device is not a fingerprint scanner.")
+                } else {
 
+
+                }
             } else {
                 Log.i(TAG, "Didn't connect to GATT services")
                 Log.i(TAG, "No services found.$status")

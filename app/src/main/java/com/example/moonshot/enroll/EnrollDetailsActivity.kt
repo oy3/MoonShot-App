@@ -38,8 +38,12 @@ class EnrollDetailsActivity : AppCompatActivity() {
     private val bluetoothManagerCallback by lazy {
         object : BLEManager.BluetoothManagerCallback() {
             override fun onConnectionDisconnected(device: BluetoothDevice) {
-                Toast.makeText(this@EnrollDetailsActivity, "Disconnected from ${device.name}", Toast.LENGTH_LONG).show()
-                finish()
+                Toast.makeText(
+                    this@EnrollDetailsActivity,
+                    "Disconnected from ${device.name}, Please go back and reconnect",
+                    Toast.LENGTH_LONG
+                ).show()
+//                finish()
             }
 
             override fun scannerImage(img: Int) {
@@ -110,7 +114,7 @@ class EnrollDetailsActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_enroll)
-        manager.managerCallback = bluetoothManagerCallback
+        manager.setCallBack(bluetoothManagerCallback)
         Log.i(TAG, "onCreate called")
 
         val device = intent.getParcelableExtra<BluetoothDevice>(EXTRA_ID)

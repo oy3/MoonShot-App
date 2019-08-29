@@ -60,8 +60,8 @@ class ConfirmDetailsActivity : AppCompatActivity() {
             }
 
             override fun onConnectionDisconnected(device: BluetoothDevice) {
-                Toast.makeText(this@ConfirmDetailsActivity, "Disconnected from ${device.name}", Toast.LENGTH_LONG).show()
-                finish()
+                Toast.makeText(this@ConfirmDetailsActivity, "Disconnected from ${device.name}, Please go back and reconnect", Toast.LENGTH_LONG).show()
+//                finish()
             }
 
             override fun scannerImage(img: Int) {
@@ -200,7 +200,7 @@ class ConfirmDetailsActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_confirm)
-        manager.managerCallback = bluetoothManagerCallback
+        manager.setCallBack(bluetoothManagerCallback)
         Log.i(TAG, "onCreate called")
 
 

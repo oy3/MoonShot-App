@@ -7,11 +7,13 @@
         android:layout_height="match_parent"
         android:background="@android:color/white"
         android:id="@+id/main_ticket">
-    <!--<include-->
-            <!--layout="@layout/toolbar"-->
-            <!--android:layout_width="match_parent"-->
-            <!--android:layout_height="wrap_content"-->
-            <!--android:id="@+id/include"/>-->
+
+    <include
+            layout="@layout/layout_error"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:visibility="gone"
+            android:id="@+id/include_error"/>
 
     <TextView
             android:text="Bluetooth"
@@ -40,7 +42,8 @@
             android:id="@+id/pullToRefresh"
             android:layout_width="match_parent"
             android:layout_height="0dp"
-            tools:layout_editor_absoluteX="0dp" app:layout_constraintBottom_toBottomOf="parent"
+            tools:layout_editor_absoluteX="0dp"
+            app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/divider5">
         <android.support.v7.widget.RecyclerView
                 android:layout_width="match_parent"
@@ -50,59 +53,6 @@
     </android.support.v4.widget.SwipeRefreshLayout>
 
 
-    <android.support.constraint.ConstraintLayout
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:background="#E6FFFFFF"
-            android:visibility="gone"
-            android:id="@+id/errorBt">
-
-        <LinearLayout
-                android:orientation="vertical"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="parent"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintBottom_toBottomOf="parent">
-            <android.support.constraint.ConstraintLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content">
-
-                <ImageView
-                        android:src="@drawable/polygonbt"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:id="@+id/imageView"
-                        app:layout_constraintStart_toStartOf="parent"
-                        app:layout_constraintTop_toTopOf="parent"
-                        app:layout_constraintEnd_toEndOf="parent"/>
-                <ImageView
-                        android:src="@drawable/ic_bluetooth_48pxbt"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:id="@+id/imageView2"
-                        app:layout_constraintEnd_toEndOf="@+id/imageView"
-                        app:layout_constraintStart_toStartOf="@+id/imageView"
-                        android:layout_marginBottom="24dp"
-                        app:layout_constraintBottom_toBottomOf="@+id/imageView"/>
-            </android.support.constraint.ConstraintLayout>
-            <TextView
-                    android:text="MoonShot requires Bluetooth"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:id="@+id/textView3"
-                    android:textAlignment="center"
-                    android:textSize="20sp"/>
-            <TextView
-                    android:text="please enable bluetooth to continue using this app"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:id="@+id/textView4"
-                    android:textSize="15sp"
-                    android:textAlignment="center"/>
-        </LinearLayout>
-    </android.support.constraint.ConstraintLayout>
     <Switch
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"

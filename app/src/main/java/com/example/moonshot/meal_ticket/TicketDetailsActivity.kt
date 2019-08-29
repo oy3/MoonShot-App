@@ -58,8 +58,14 @@ class TicketDetailsActivity : AppCompatActivity() {
             }
 
             override fun onConnectionDisconnected(device: BluetoothDevice) {
-                Toast.makeText(this@TicketDetailsActivity, "Disconnected from ${device.name}", Toast.LENGTH_LONG).show()
-                finish()
+                runOnUiThread {
+                    Toast.makeText(
+                        this@TicketDetailsActivity,
+                        "Disconnected from ${device.name}, Please go back and reconnect",
+                        Toast.LENGTH_LONG
+                    ).show()
+                    finish()
+                }
             }
 
             override fun scannerImage(img: Int) {
@@ -92,7 +98,7 @@ class TicketDetailsActivity : AppCompatActivity() {
 
                                     ApiService.VerifyResponse(
                                         success = false,
-                                        message = "HttpException"
+                                        message = message
                                     )
                                 }
                                 is ConnectException -> {
@@ -199,7 +205,7 @@ class TicketDetailsActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_ticket)
-        manager.managerCallback = bluetoothManagerCallback
+        manager.setCallBack(bluetoothManagerCallback)
         Log.i(TAG, "onCreate called")
 
         val device = intent.getParcelableExtra<BluetoothDevice>(EXTRA_ID)
