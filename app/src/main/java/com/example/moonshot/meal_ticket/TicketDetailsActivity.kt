@@ -190,6 +190,8 @@ class TicketDetailsActivity : AppCompatActivity() {
                             if (!it.success) {
                                 txtVerifyUpdate.text = it.message
                             } else {
+                                manager.writeToService("PRINT_TICKET".toByteArray())
+
                                 manager.writeToSensor(false)
                                 txtVerifyUpdate.text = it.message
                             }
